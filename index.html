@@ -1,0 +1,827 @@
+<title>Парообразование и конденсация</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,500;0,700;1,500&family=PT+Sans:wght@400;700&family=PT+Serif:ital@0;1&family=PT+Mono&display=swap">
+<style>
+[hidden]{display:none!important}
+/* Layout: школьная тетрадь — красная линия полей, вкладки, слева текст учебника, справа рисунок/модель на клетчатой бумаге */
+:root{
+  --paper:#f6f7fb; --surface:#ffffff; --ink:#1c2746; --muted:#5b6582; --line:#d8ddea;
+  --grid:rgba(60,95,170,.09); --accent:#2d4db3; --accent-soft:#e4e9f9; --margin:#d1475a;
+  --ok:#1d8656; --ok-soft:#e1f3ea; --bad:#c13838; --bad-soft:#fbe6e6;
+  --c1:#2d4db3; --c2:#c2410c; --c3:#7c3aed; --c4:#15803d;
+  --f-display:"Alegreya",Georgia,"Times New Roman",serif;
+  --f-body:"PT Sans","Segoe UI",Arial,sans-serif;
+  --f-math:"PT Serif",Georgia,serif;
+  --f-mono:"PT Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#11162a; --surface:#171e36; --ink:#e5e9f4; --muted:#9aa3bf; --line:#2a3352;
+  --grid:rgba(140,170,255,.07); --accent:#93a9ff; --accent-soft:#222c4c; --margin:#ff7c8b;
+  --ok:#4fc68f; --ok-soft:#173528; --bad:#ff7b7b; --bad-soft:#3a1e24;
+  --c1:#6c84e0; --c2:#d9733c; --c3:#9470dc; --c4:#2fa463; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#11162a; --surface:#171e36; --ink:#e5e9f4; --muted:#9aa3bf; --line:#2a3352;
+  --grid:rgba(140,170,255,.07); --accent:#93a9ff; --accent-soft:#222c4c; --margin:#ff7c8b;
+  --ok:#4fc68f; --ok-soft:#173528; --bad:#ff7b7b; --bad-soft:#3a1e24;
+  --c1:#6c84e0; --c2:#d9733c; --c3:#9470dc; --c4:#2fa463; color-scheme:dark}
+:root[data-theme="light"]{color-scheme:light}
+*{box-sizing:border-box}
+html{font-size:137.5%}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:1rem;line-height:1.55;transition:background .2s,color .2s}
+.wrap{max-width:min(78rem,100%);margin:0 auto;padding-inline:16px;padding-block:0 48px}
+header.top{position:relative;padding-block:28px 20px;padding-left:22px;display:flex;flex-wrap:wrap;gap:16px 24px;justify-content:space-between;align-items:flex-start}
+header.top::before{content:"";position:absolute;left:0;top:24px;bottom:16px;width:2px;background:var(--margin)}
+.htext{flex:1 1 520px;min-width:0}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sw{display:inline-flex;border:1px solid var(--line);border-radius:999px;background:var(--surface);padding:3px;gap:2px}
+.sw button{font:inherit;font-size:.85rem;font-weight:700;letter-spacing:.04em;border:0;background:none;color:var(--muted);border-radius:999px;padding:5px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.sw button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.sw svg{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(2rem,4.6vw,3rem);line-height:1.08;margin:.25em 0 .2em;text-wrap:balance}
+h1 em{font-style:italic;font-weight:500;color:var(--accent)}
+.lead{max-width:64ch;color:var(--muted);margin:0}
+h2{font-family:var(--f-display);font-size:1.5rem;margin:0;text-wrap:balance}
+h3{font-family:var(--f-display);font-size:1.2rem;margin:0}
+p{margin:0}
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:1px solid var(--line);display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin-bottom:22px}
+nav.tabs button{font:inherit;font-weight:700;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:12px 14px 10px;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+nav.tabs button:hover{color:var(--ink)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.m{font-family:var(--f-math);white-space:nowrap}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.82em;line-height:1.12;margin:0 .08em}
+.fr>span:first-child{border-bottom:1px solid currentColor;padding:0 .18em}
+.fr>span:last-child{padding:0 .18em}
+.paper-grid{background-color:var(--surface);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px;border:1px solid var(--line);border-radius:10px}
+svg.plot{display:block;width:100%;height:auto}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+.duo.wideR{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)}
+@media (max-width:980px){.duo,.duo.wideR{grid-template-columns:1fr}}
+.stack{display:flex;flex-direction:column;gap:18px}
+.defn{border:1.5px solid var(--ink);border-radius:14px;padding:10px 14px;line-height:1.6}
+.fblock{display:block;text-align:center;font-family:var(--f-math);font-size:1.18em;margin-top:6px}
+.note{background:var(--accent-soft);border-radius:8px;padding:10px 14px;line-height:1.6}
+.ex{border-left:3px solid var(--margin);padding-left:12px;line-height:1.7}
+.ex .lbl{display:block;margin-bottom:2px}
+ul.clean{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px;line-height:1.55}
+.lbl{font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-family:var(--f-math);font-variant-numeric:tabular-nums}
+th,td{padding:8px 10px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+thead th{color:var(--muted);font-weight:400}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button,.chip{font:inherit;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 13px;cursor:pointer;line-height:1.4}
+.seg button[aria-pressed="true"],.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chip{font-family:var(--f-math);font-size:.95rem}
+.row{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.btn{font:inherit;font-weight:700;background:var(--accent);color:var(--paper);border:0;border-radius:8px;padding:8px 16px;cursor:pointer}
+.btn.ghost{background:none;color:var(--accent);border:1.5px solid var(--accent)}
+.btn.sm{padding:5px 12px;font-size:.9rem}
+select,input.num{font:inherit;font-family:var(--f-math);padding:4px 8px;border:1.5px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);max-width:100%}
+input.num{width:6em}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.sl{display:grid;grid-template-columns:minmax(4em,auto) 1fr 5.5em;gap:10px;align-items:center}
+.sl .vl{font-family:var(--f-math);text-align:right}
+.big{font-family:var(--f-math);font-size:1.35rem;line-height:1.7}
+.eq{font-family:var(--f-math);font-size:1.6rem;line-height:1.6}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:st}
+.steps li{display:grid;grid-template-columns:2em 1fr;gap:10px;align-items:start;counter-increment:st}
+.steps li::before{content:counter(st);font-family:var(--f-mono);font-size:.85rem;color:var(--paper);background:var(--accent);border-radius:50%;width:1.7em;height:1.7em;display:grid;place-items:center;margin-top:.2em}
+.steps .why{color:var(--muted);font-size:.92rem;display:block}
+.steps .mx{font-family:var(--f-math);font-size:1.2rem;line-height:1.9;overflow-x:auto;display:block}
+.sMode{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.9rem;margin:6px 0 12px;cursor:pointer}
+.sMode input{width:1.2em;height:1.2em;accent-color:var(--accent)}
+.work{border:2px dashed var(--line);border-radius:12px;min-height:220px;padding:12px 16px;color:var(--muted);font-size:.95rem;margin-bottom:14px}
+#sCheck .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 6px}
+#sCheck .fb{font-weight:700;margin:6px 0 12px}
+#sCheck .fb.ok{color:var(--ok)}#sCheck .fb.bad{color:var(--bad)}
+#sCtl .btn[disabled]{opacity:.4;cursor:default}
+@media (max-width:700px){#sCheck .opts{grid-template-columns:1fr}}
+.answer{border:2px solid var(--ok);background:var(--ok-soft);border-radius:10px;padding:10px 14px;font-family:var(--f-math);font-size:1.3rem;line-height:1.8}
+.answer.none{border-color:var(--bad);background:var(--bad-soft)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.9rem;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:6px}
+.qwrap{max-width:880px}
+.stat{font-family:var(--f-mono);font-size:.9rem;color:var(--muted)}
+.stat b{color:var(--ink);font-weight:400}
+.qcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:16px}
+.qcat{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.qtext{font-size:1.2rem;line-height:1.6}
+.qtext .m{font-size:1.12em}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:10px}
+.opt{font:inherit;font-family:var(--f-math);font-size:1.08rem;text-align:left;padding:12px 14px;border:1.5px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);cursor:pointer;display:flex;gap:10px;align-items:center;min-height:2.6em;line-height:1.6}
+.opt .k{font-family:var(--f-mono);font-size:.8rem;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 5px;flex:none}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.expl{border-radius:8px;padding:12px 14px;font-size:1rem;line-height:1.8}
+.expl.ok{background:var(--ok-soft)} .expl.no{background:var(--bad-soft)}
+.expl b{display:block;margin-bottom:2px}
+.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.progress > i{display:block;height:100%;background:var(--accent);transition:width .3s}
+.score{font-family:var(--f-display);font-size:3rem;line-height:1}
+.review{display:flex;flex-direction:column;gap:12px}
+.review > div{border-left:3px solid var(--bad);padding:4px 0 4px 12px;line-height:1.7;display:flex;flex-direction:column;gap:6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<style>
+.sim{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:980px){.sim{grid-template-columns:1fr}}
+canvas.vessel{display:block;width:100%;height:auto;border-radius:10px}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5em,1fr));gap:8px}
+.readout>div{border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--paper)}
+.readout .k{display:block;font-size:.8rem;color:var(--muted);font-weight:700}
+.readout .v{font-family:var(--f-math);font-size:1.25rem}
+.status{border-radius:10px;padding:10px 14px;font-weight:700;line-height:1.5}
+.status.sat{background:var(--accent-soft);color:var(--accent)}
+.status.uns{background:var(--ok-soft);color:var(--ok)}
+.status.cond{background:var(--bad-soft);color:var(--bad)}
+.flux{display:grid;grid-template-columns:auto 1fr 4.5em;gap:6px 10px;align-items:center;font-size:.9rem}
+.flux .bar{height:14px;border-radius:7px;background:var(--line);overflow:hidden}
+.flux .bar i{display:block;height:100%;border-radius:7px;transition:width .15s}
+.obs{counter-reset:o;list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.obs li{counter-increment:o;display:grid;grid-template-columns:1.8em 1fr;gap:8px;line-height:1.5}
+.obs li::before{content:counter(o);font-family:var(--f-mono);font-size:.8rem;background:var(--accent-soft);color:var(--accent);border-radius:50%;width:1.6em;height:1.6em;display:grid;place-items:center;margin-top:.1em}
+.cmp td,.cmp th{white-space:normal;text-align:left;font-family:var(--f-body);vertical-align:top;line-height:1.45}
+.cmp th:first-child{color:var(--muted)}
+.pin{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:6px}
+.pin input{width:8em;font-size:1.2rem}
+.fb.ok{color:var(--ok);font-weight:700}.fb.bad{color:var(--bad);font-weight:700}
+.prob{font-size:1.15rem;line-height:1.7}
+.tcard{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:980px){.tcard{grid-template-columns:1fr}}
+.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:4px}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="htext">
+      <div class="eyebrow" data-i="eyebrow"></div>
+      <h1 data-i="h1"></h1>
+      <p class="lead" data-i="lead"></p>
+    </div>
+    <div class="ctrls">
+      <div class="sw" id="langSw" role="group" aria-label="Тіл / Язык"><button data-lang="ru">РУС</button><button data-lang="kz">ҚАЗ</button></div>
+      <div class="sw" id="sizeSw" role="group" aria-label="Размер шрифта"><button data-sz="16">A</button><button data-sz="22">A+</button><button data-sz="28">A++</button></div>
+      <div class="sw" id="themeSw" role="group" aria-label="Тема">
+        <button data-th="light"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span data-i="light"></span></button>
+        <button data-th="dark"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><span data-i="dark"></span></button>
+      </div>
+    </div>
+  </header>
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="t-theory" data-tab="theory" data-i="tTheory"></button>
+    <button role="tab" id="t-model" data-tab="model" data-i="tModel"></button>
+    <button role="tab" id="t-boil" data-tab="boil" data-i="tBoil"></button>
+    <button role="tab" id="t-prob" data-tab="prob" data-i="tProb"></button>
+    <button role="tab" id="t-train" data-tab="train" data-i="tTrain"></button>
+    <button role="tab" id="t-test" data-tab="test" data-i="tTest"></button>
+  </nav>
+  <main>
+  <div id="p-theory" class="pane"><div class="stack" id="theoryBox"></div></div>
+
+  <div id="p-model" class="pane" hidden>
+    <div class="sim">
+      <div class="stack">
+        <div class="card">
+          <span class="lbl" data-i="vesselL"></span>
+          <div class="paper-grid" style="padding:6px"><canvas class="vessel" id="cv" width="560" height="520"></canvas></div>
+          <div class="sl"><span data-i="tL"></span><input type="range" id="mT" min="20" max="100" step="1" value="60" aria-label="t"><span class="vl" id="mTv"></span></div>
+          <div class="sl"><span data-i="vL"></span><input type="range" id="mV" min="0.5" max="6" step="0.05" value="3" aria-label="V"><span class="vl" id="mVv"></span></div>
+          <div class="row"><span data-i="massL"></span><div class="seg" id="mM"></div></div>
+          <div class="row"><div class="seg" id="mLid"></div><button class="btn ghost sm" id="mRefill" data-i="refill"></button></div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card">
+          <div id="mStatus" class="status"></div>
+          <div class="readout" id="mRead"></div>
+          <div class="flux" id="mFlux"></div>
+        </div>
+        <div class="card">
+          <span class="lbl" data-i="pvL"></span>
+          <div class="paper-grid"><svg id="pvSvg" class="plot" viewBox="0 0 620 380" role="img" aria-label="p-V"></svg></div>
+          <div class="legend" id="pvLeg"></div>
+        </div>
+        <div class="card"><span class="lbl" data-i="obsL"></span><ol class="obs" id="mObs"></ol></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="p-boil" class="pane" hidden>
+    <div class="duo wideR">
+      <div class="stack">
+        <div class="card">
+          <span class="lbl" data-i="placeL"></span>
+          <div class="seg" id="bPlace"></div>
+          <div class="sl"><span data-i="pextL"></span><input type="range" id="bP" min="20" max="210" step="0.1" value="101.3" aria-label="p"><span class="vl" id="bPv"></span></div>
+          <div class="readout" id="bRead"></div>
+          <p class="note" id="bNote"></p>
+        </div>
+        <div class="card">
+          <span class="lbl" data-i="tableL"></span>
+          <div class="tbl-wrap"><table id="bTable"></table></div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card">
+          <span class="lbl" data-i="psL"></span>
+          <div class="paper-grid"><svg id="psSvg" class="plot" viewBox="0 0 700 470" role="img" aria-label="p(t)"></svg></div>
+          <div class="sl"><span>t</span><input type="range" id="bT" min="0" max="120" step="1" value="60" aria-label="t"><span class="vl" id="bTv"></span></div>
+          <label class="sMode"><input type="checkbox" id="bCh"> <span data-i="charlesL"></span></label>
+          <div class="legend" id="psLeg"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="p-prob" class="pane" hidden>
+    <div class="duo wideR">
+      <div class="stack">
+        <div class="card">
+          <span class="lbl" data-i="pTypeL"></span>
+          <div class="seg" id="prCat"></div>
+          <div class="row"><button class="btn" id="prNew" data-i="prNew"></button></div>
+          <label class="sMode"><input type="checkbox" id="prAll"> <span data-i="sAllL"></span></label>
+        </div>
+        <div class="card"><span class="lbl" data-i="constL"></span><div id="prConst" style="line-height:1.8"></div></div>
+      </div>
+      <div class="stack">
+        <div class="card">
+          <span class="lbl" id="prCatL"></span>
+          <div class="prob" id="prText"></div>
+          <div class="work" id="prWork"></div>
+          <div id="prCheck"></div>
+          <ol class="steps" id="prSteps"></ol>
+          <div id="prAns"></div>
+          <div class="row" id="prCtl"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="p-train" class="pane" hidden>
+    <div class="qwrap">
+      <div class="row" style="margin-bottom:14px"><div class="seg" id="trCat"></div></div>
+      <div class="row" style="margin-bottom:14px">
+        <span class="stat"><span data-i="sDone"></span>: <b id="sDone">0</b></span>
+        <span class="stat"><span data-i="sOk"></span>: <b id="sOk">0</b></span>
+        <span class="stat"><span data-i="sStreak"></span>: <b id="sStreak">0</b></span>
+        <span class="stat"><span data-i="sBest"></span>: <b id="sBest">0</b></span>
+      </div>
+      <div id="trBox"></div>
+    </div>
+  </div>
+  <div id="p-test" class="pane" hidden><div class="qwrap" id="testBox"></div></div>
+  </main>
+</div>
+
+<script>
+/* ================= база ================= */
+let LANG='ru';
+try{const s=localStorage.getItem('vap-lang');if(s==='kz'||s==='ru')LANG=s;}catch(e){}
+const L=(ru,kz)=>LANG==='kz'?kz:ru;
+const $=s=>document.querySelector(s);
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let rnd=Math.random;
+const ri=(a,b)=>a+Math.floor(rnd()*(b-a+1));
+const pick=a=>a[Math.floor(rnd()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const newSeed=()=>Math.floor(Math.random()*2**31);
+function withSeed(seed,fn){const p=rnd;rnd=mulberry(seed);try{return fn();}finally{rnd=p;}}
+const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+const sup=n=>String(n).split('').map(c=>SUP[c]||c).join('');
+function trimN(x,d){let s=x.toFixed(d);if(s.includes('.'))s=s.replace(/0+$/,'').replace(/\.$/,'');return s;}
+function fmt(x,sig=3){if(!isFinite(x))return'—';if(x===0)return'0';const a=Math.abs(x);
+  if(a>=1e5||a<1e-3){let e=Math.floor(Math.log10(a));let m=x/10**e;if(Math.abs(Math.round(m*100)/100)>=10){m/=10;e++;}return (trimN(m,sig-1).replace('.',',')+'·10'+sup(e)).replace('-','−');}
+  const d=Math.max(0,sig-1-Math.floor(Math.log10(a)));return trimN(x,d).replace('.',',').replace('-','−');}
+const frac=(n,d)=>`<span class="fr"><span>${n}</span><span>${d}</span></span>`;
+const M_=s=>`<span class="m">${s}</span>`;
+const strip=h=>h.replace(/<[^>]+>/g,'|');
+const NS='http://www.w3.org/2000/svg';
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,s,x,y,a){const e=el('text',Object.assign({x,y,'font-size':19,fill:'var(--ink)','font-family':'PT Serif, Georgia, serif'},a||{}),parent);e.textContent=s;return e;}
+function cssv(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+
+/* ================= физика ================= */
+const R=8.31, MW=0.018, CW=4200, LW=2.3e6;
+// давление насыщенного водяного пара, кПа
+const PT=[[0,.611],[5,.872],[10,1.228],[15,1.705],[20,2.339],[25,3.169],[30,4.246],[35,5.628],[40,7.384],[45,9.593],[50,12.35],[55,15.76],[60,19.94],[65,25.03],[70,31.19],[75,38.58],[80,47.39],[85,57.83],[90,70.14],[95,84.55],[100,101.3],[105,120.8],[110,143.3],[115,169.1],[120,198.5],[125,232.1],[130,270.1]];
+function psat(t){t=Math.max(0,Math.min(130,t));let i=Math.min(PT.length-2,Math.floor(t/5));const[a,pa]=PT[i],[b,pb]=PT[i+1];const u=(t-a)/(b-a);return Math.exp(Math.log(pa)+u*(Math.log(pb)-Math.log(pa)));}
+function tboil(p){let lo=0,hi=130;for(let k=0;k<50;k++){const m=(lo+hi)/2;if(psat(m)<p)lo=m;else hi=m;}return(lo+hi)/2;}
+const rhoSat=t=>psat(t)*1000*MW/(R*(t+273)); // кг/м³ = г/л
+const pAlt=h=>101.3*Math.exp(-h/8000);
+const SUBST=()=>[{n:L('вода','су'),g:L('воды','суды'),L:2.3e6,t:100},{n:L('спирт','спирт'),g:L('спирта','спиртті'),L:0.9e6,t:78},{n:L('эфир','эфир'),g:L('эфира','эфирді'),L:0.4e6,t:35},{n:L('ртуть','сынап'),g:L('ртути','сынапты'),L:0.3e6,t:357},{n:L('аммиак','аммиак'),g:L('аммиака','аммиакты'),L:1.4e6,t:-33}];
+
+/* ================= интерфейс ================= */
+const UI=()=>({
+  eyebrow:L('Физика · 10 класс · Молекулярная физика','Физика · 10-сынып · Молекулалық физика'),
+  h1:L('Парообразование и конденсация. <em>Насыщенный</em> и ненасыщенный пар','Бу түзілу және конденсация. <em>Қаныққан</em> және қанықпаған бу'),
+  lead:L('Испарение и кипение, динамическое равновесие, свойства насыщенного пара, зависимость температуры кипения от давления — с моделью сосуда под поршнем, задачами с самопроверкой, тренажёром и тестом.','Булану мен қайнау, динамикалық тепе-теңдік, қаныққан будың қасиеттері, қайнау температурасының қысымға тәуелділігі — поршень астындағы ыдыс моделі, өзін-өзі тексеретін есептер, жаттықтырғыш және тест.'),
+  light:L('Светлая','Ашық'),dark:L('Тёмная','Қараңғы'),
+  tTheory:L('Теория','Теория'),tModel:L('Модель: сосуд с паром','Модель: булы ыдыс'),tBoil:L('Давление пара и кипение','Бу қысымы және қайнау'),tProb:L('Задачи','Есептер'),tTrain:L('Тренажёр','Жаттықтырғыш'),tTest:L('Тест','Тест'),
+  vesselL:L('Вода и пар в цилиндре под поршнем','Поршень астындағы цилиндрдегі су мен бу'),tL:L('t, °C','t, °C'),vL:L('V, л','V, л'),massL:L('Масса воды:','Су массасы:'),refill:L('Долить воду','Су құю'),
+  pvL:L('Изотерма: p(V) при t = const','Изотерма: t = const кезіндегі p(V)'),obsL:L('Наблюдайте','Бақылаңыз'),
+  placeL:L('Где кипятим воду?','Суды қайда қайнатамыз?'),pextL:L('p, кПа','p, кПа'),tableL:L('Давление и плотность насыщенного водяного пара','Қаныққан су буының қысымы мен тығыздығы'),
+  psL:L('Зависимость давления насыщенного пара от температуры','Қаныққан бу қысымының температураға тәуелділігі'),charlesL:L('показать нагревание закрытого сосуда (вода испарилась → пар стал ненасыщенным)','жабық ыдысты қыздыруды көрсету (су буланып кетті → бу қанықпаған болды)'),
+  pTypeL:L('Тип задачи','Есеп түрі'),prNew:L('Новая задача','Жаңа есеп'),constL:L('Справочные данные','Анықтамалық деректер'),
+  sAllL:L('Показывать решение сразу (режим учителя)','Шешімді бірден көрсету (мұғалім режимі)'),
+  sDone:L('Решено','Шешілді'),sOk:L('Верно','Дұрыс'),sStreak:L('Серия','Қатарынан'),sBest:L('Рекорд серии','Ең ұзақ қатар'),
+});
+function applyUI(){const u=UI();document.querySelectorAll('[data-i]').forEach(e=>{const v=u[e.dataset.i];if(v!==undefined)e.innerHTML=v;});
+  document.title=L('Парообразование и конденсация','Бу түзілу және конденсация');
+  document.documentElement.lang=LANG==='kz'?'kk':'ru';[...$('#langSw').children].forEach(b=>b.setAttribute('aria-pressed',b.dataset.lang===LANG));}
+const TABS=['theory','model','boil','prob','train','test'];
+function showTab(t){TABS.forEach(x=>{$('#p-'+x).hidden=x!==t;$('#t-'+x).setAttribute('aria-selected',x===t);});try{localStorage.setItem('vap-tab',t);}catch(e){}}
+document.querySelector('nav.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)showTab(b.dataset.tab);});
+
+/* ================= графики ================= */
+function mkPlot(svg,o){const W=o.W,H=o.H,pl=o.pl||64,pr=o.pr||20,pt=o.pt||20,pb=o.pb||46;
+  const X=x=>pl+(x-o.x0)/(o.x1-o.x0)*(W-pl-pr), Y=y=>H-pb-(y-o.y0)/(o.y1-o.y0)*(H-pt-pb);return{X,Y,W,H,pl,pr,pt,pb};}
+function axes(svg,P,o){const{X,Y}=P;
+  o.xt.forEach(v=>{el('line',{x1:X(v),x2:X(v),y1:Y(o.y0),y2:Y(o.y1),stroke:'var(--line)','stroke-width':1},svg);txt(svg,o.xf?o.xf(v):fmt(v),X(v),Y(o.y0)+24,{'text-anchor':'middle','font-size':16,fill:'var(--muted)'});});
+  o.yt.forEach(v=>{el('line',{x1:X(o.x0),x2:X(o.x1),y1:Y(v),y2:Y(v),stroke:'var(--line)','stroke-width':1},svg);txt(svg,o.yf?o.yf(v):fmt(v),X(o.x0)-8,Y(v)+5,{'text-anchor':'end','font-size':16,fill:'var(--muted)'});});
+  el('line',{x1:X(o.x0),x2:X(o.x1)+8,y1:Y(o.y0),y2:Y(o.y0),stroke:'var(--muted)','stroke-width':2},svg);
+  el('line',{x1:X(o.x0),x2:X(o.x0),y1:Y(o.y0),y2:Y(o.y1)-8,stroke:'var(--muted)','stroke-width':2},svg);
+  txt(svg,o.xl,X(o.x1),Y(o.y0)-10,{'text-anchor':'end','font-size':18,'font-style':'italic',fill:'var(--muted)'});
+  txt(svg,o.yl,X(o.x0)+8,Y(o.y1)+6,{'font-size':18,'font-style':'italic',fill:'var(--muted)'});}
+function path(svg,pts,a){if(!pts.length)return;el('path',Object.assign({d:'M'+pts.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L'),fill:'none','stroke-width':3,'stroke-linejoin':'round'},a),svg);}
+
+/* ================= ТЕОРИЯ ================= */
+function figEvap(svg){svg.innerHTML='';const W=420,H=250;
+  el('rect',{x:40,y:150,width:340,height:80,fill:'var(--c1)','fill-opacity':.22,stroke:'var(--c1)','stroke-width':2},svg);
+  el('path',{d:'M30 100 V235 H390 V100',fill:'none',stroke:'var(--muted)','stroke-width':3},svg);
+  const r=withSeed(7,()=>Array.from({length:34},()=>[50+rnd()*320,160+rnd()*62]));r.forEach(([x,y])=>el('circle',{cx:x,cy:y,r:5,fill:'var(--c1)'},svg));
+  [[90,125,-10,-40],[200,100,8,-46],[300,115,12,-38],[250,78,5,-34]].forEach(([x,y,dx,dy],i)=>{el('circle',{cx:x,cy:y,r:6,fill:'var(--c2)'},svg);el('line',{x1:x,y1:y,x2:x+dx,y2:y+dy,stroke:'var(--c2)','stroke-width':2.5,'marker-end':'url(#ar2)'},svg);});
+  const d=el('defs',{},svg);const m=el('marker',{id:'ar2',viewBox:'0 0 10 10',refX:8,refY:5,markerWidth:6,markerHeight:6,orient:'auto'},d);el('path',{d:'M0 0L10 5L0 10z',fill:'var(--c2)'},m);
+  txt(svg,L('быстрые молекулы вылетают','шапшаң молекулалар ұшып шығады'),210,22,{'text-anchor':'middle','font-size':17,fill:'var(--c2)'});
+  txt(svg,L('жидкость','сұйық'),210,248,{'text-anchor':'middle','font-size':16,fill:'var(--muted)'});}
+function figHeat(svg){svg.innerHTML='';const P=mkPlot(svg,{x0:0,x1:10,y0:0,y1:140,W:460,H:290,pl:56});
+  axes(svg,P,{x0:0,x1:10,y0:0,y1:140,xt:[],yt:[20,60,100,140],xl:'τ',yl:'t, °C'});
+  const pts=[[0,20],[3,100],[7,100],[9,130]];path(svg,pts.map(([x,y])=>[P.X(x),P.Y(y)]),{stroke:'var(--c2)'});
+  [['A',0,20],['B',3,100],['C',7,100],['D',9,130]].forEach(([s,x,y])=>{el('circle',{cx:P.X(x),cy:P.Y(y),r:5,fill:'var(--c2)'},svg);txt(svg,s,P.X(x)+(s==='A'?12:6),P.Y(y)+(s==='A'?26:-10),{'font-size':18,'font-weight':'bold'});});
+  txt(svg,L('нагревание воды','судың қызуы'),P.X(2.1),P.Y(40),{'font-size':15,fill:'var(--muted)'});
+  txt(svg,L('кипение: t = const','қайнау: t = const'),P.X(5),P.Y(100)+24,{'text-anchor':'middle','font-size':15,fill:'var(--c1)'});
+  txt(svg,L('пар','бу'),P.X(8)+12,P.Y(115)+10,{'font-size':15,fill:'var(--muted)'});}
+function figEq(svg){svg.innerHTML='';
+  el('path',{d:'M60 40 H360 V230 H60 Z',fill:'none',stroke:'var(--muted)','stroke-width':3},svg);el('rect',{x:50,y:28,width:320,height:14,rx:4,fill:'var(--muted)'},svg);
+  el('rect',{x:62,y:170,width:296,height:58,fill:'var(--c1)','fill-opacity':.22},svg);el('line',{x1:62,x2:358,y1:170,y2:170,stroke:'var(--c1)','stroke-width':2},svg);
+  withSeed(3,()=>{for(let i=0;i<22;i++)el('circle',{cx:75+rnd()*270,cy:55+rnd()*100,r:5,fill:'var(--c1)','fill-opacity':.8},svg);});
+  const d=el('defs',{},svg);[['a1','var(--c2)'],['a2','var(--c4)']].forEach(([id,c])=>{const m=el('marker',{id,viewBox:'0 0 10 10',refX:8,refY:5,markerWidth:6,markerHeight:6,orient:'auto'},d);el('path',{d:'M0 0L10 5L0 10z',fill:c},m);});
+  [130,250].forEach(x=>{el('line',{x1:x,y1:175,x2:x,y2:120,stroke:'var(--c2)','stroke-width':3,'marker-end':'url(#a1)'},svg);el('line',{x1:x+30,y1:115,x2:x+30,y2:168,stroke:'var(--c4)','stroke-width':3,'marker-end':'url(#a2)'},svg);});
+  txt(svg,L('N вылетающих = N возвращающихся','ұшып шыққан N = қайтып оралған N'),210,262,{'text-anchor':'middle','font-size':17});}
+function figPV(svg){svg.innerHTML='';const P=mkPlot(svg,{x0:0,x1:6,y0:0,y1:30,W:460,H:290,pl:56});
+  axes(svg,P,{x0:0,x1:6,y0:0,y1:30,xt:[],yt:[],xl:'V',yl:'p'});
+  const ps=20,Vs=2.2;const pts=[];for(let V=0.4;V<=6;V+=0.05)pts.push([P.X(V),P.Y(V<Vs?ps:ps*Vs/V)]);
+  path(svg,pts.filter((p,i)=>0.4+i*0.05<Vs),{stroke:'var(--c1)'});path(svg,pts.filter((p,i)=>0.4+i*0.05>=Vs-0.05),{stroke:'var(--c4)'});
+  el('line',{x1:P.X(0),x2:P.X(Vs),y1:P.Y(ps),y2:P.Y(ps),stroke:'var(--muted)','stroke-dasharray':'5 5'},svg);txt(svg,'pн',P.X(0)+6,P.Y(ps)-8,{'font-size':17,'font-style':'italic'});
+  txt(svg,L('насыщенный','қаныққан'),P.X(1.2),P.Y(ps)-12,{'text-anchor':'middle','font-size':15,fill:'var(--c1)'});
+  txt(svg,L('ненасыщенный: pV = const','қанықпаған: pV = const'),P.X(4.2),P.Y(ps*Vs/4.2)+34,{'text-anchor':'middle','font-size':15,fill:'var(--c4)'});}
+function figPT(svg){svg.innerHTML='';const P=mkPlot(svg,{x0:0,x1:120,y0:0,y1:200,W:460,H:290,pl:56});
+  axes(svg,P,{x0:0,x1:120,y0:0,y1:200,xt:[0,20,40,60,80,100,120],yt:[0,50,100,150,200],xl:'t, °C',yl:L('p, кПа','p, кПа')});
+  const pts=[];for(let t=0;t<=120;t+=1)pts.push([P.X(t),P.Y(psat(t))]);path(svg,pts,{stroke:'var(--c1)'});
+  el('line',{x1:P.X(0),x2:P.X(120),y1:P.Y(101.3),y2:P.Y(101.3),stroke:'var(--c2)','stroke-dasharray':'6 5','stroke-width':2},svg);
+  txt(svg,L('атм. давление 101,3 кПа','атм. қысым 101,3 кПа'),P.X(2),P.Y(101.3)-8,{'font-size':15,fill:'var(--c2)'});
+  el('circle',{cx:P.X(100),cy:P.Y(101.3),r:6,fill:'var(--c2)'},svg);txt(svg,L('кипение','қайнау'),P.X(97),P.Y(101.3)-10,{'text-anchor':'end','font-size':15,fill:'var(--c2)'});}
+const fig=(id,vb,cap)=>`<figure style="margin:0"><div class="paper-grid"><svg id="${id}" class="plot" viewBox="${vb}" role="img"></svg></div><div class="cap">${cap}</div></figure>`;
+function renderTheory(){
+  const S_=SUBST();
+  $('#theoryBox').innerHTML=`
+  <div class="card tcard"><div class="stack">
+    <h2>${L('1. Парообразование: испарение и кипение','1. Бу түзілу: булану және қайнау')}</h2>
+    <div class="defn">${L('<b>Парообразование</b> — переход вещества из жидкого состояния в газообразное (пар). Существует два вида парообразования: <b>испарение</b> и <b>кипение</b>.','<b>Бу түзілу</b> — заттың сұйық күйден газ (бу) күйіне ауысуы. Бу түзілудің екі түрі бар: <b>булану</b> және <b>қайнау</b>.')}</div>
+    <p>${L('<b>Испарение</b> — парообразование, происходящее со свободной поверхности жидкости при любой температуре. Покинуть жидкость могут только самые быстрые молекулы: их кинетической энергии хватает, чтобы преодолеть притяжение соседних молекул. Поэтому средняя кинетическая энергия оставшихся молекул уменьшается — <b>при испарении жидкость охлаждается</b>.','<b>Булану</b> — кез келген температурада сұйықтың еркін бетінен болатын бу түзілу. Сұйықтан тек ең шапшаң молекулалар ғана ұшып шыға алады: олардың кинетикалық энергиясы көрші молекулалардың тартылысын жеңуге жетеді. Сондықтан қалған молекулалардың орташа кинетикалық энергиясы кемиді — <b>буланғанда сұйық суиды</b>.')}</p>
+    <p>${L('Скорость испарения растёт при повышении температуры, увеличении площади свободной поверхности, удалении пара (ветер) и зависит от рода жидкости.','Булану жылдамдығы температура артқанда, еркін беттің ауданы ұлғайғанда, бу әкетілгенде (жел) өседі және сұйықтың тегіне тәуелді.')}</p>
+  </div>${fig('fE','0 0 420 255',L('Рис. 1. Испарение с поверхности жидкости','1-сурет. Сұйық бетінен булану'))}</div>
+
+  <div class="card tcard"><div class="stack">
+    <h2>${L('2. Кипение. Конденсация. Удельная теплота парообразования','2. Қайнау. Конденсация. Меншікті булану жылуы')}</h2>
+    <p>${L('<b>Кипение</b> — интенсивное парообразование по всему объёму жидкости: внутри неё растут и всплывают пузырьки пара. Кипение происходит при определённой температуре — <b>температуре кипения</b>, которая во время кипения не меняется (участок BC).','<b>Қайнау</b> — сұйықтың бүкіл көлемінде жүретін қарқынды бу түзілу: оның ішінде бу көпіршіктері өсіп, жоғары көтеріледі. Қайнау белгілі бір температурада — <b>қайнау температурасында</b> жүреді, қайнау кезінде ол өзгермейді (BC бөлігі).')}</p>
+    <div class="defn">${L('<b>Конденсация</b> — переход вещества из газообразного состояния в жидкое. При конденсации выделяется столько же энергии, сколько было затрачено на парообразование.','<b>Конденсация</b> — заттың газ күйінен сұйық күйге ауысуы. Конденсация кезінде бу түзілуге жұмсалған энергиядай энергия бөлінеді.')}
+      <span class="fblock">Q = Lm</span></div>
+    <p>${L('<b>Удельная теплота парообразования</b> L показывает, какое количество теплоты нужно, чтобы превратить в пар 1 кг жидкости при температуре кипения. Единица — Дж/кг.','<b>Меншікті булану жылуы</b> L температурасы қайнау температурасына тең 1 кг сұйықты буға айналдыру үшін қанша жылу мөлшері қажет екенін көрсетеді. Өлшем бірлігі — Дж/кг.')}</p>
+    <div class="tbl-wrap"><table><thead><tr><th>${L('Вещество','Зат')}</th><th>L, ${L('МДж/кг','МДж/кг')}</th><th>t<sub>${L('кип','қайн')}</sub>, °C</th></tr></thead><tbody>${S_.map(s=>`<tr><td>${s.n}</td><td>${fmt(s.L/1e6,2)}</td><td>${fmt(s.t)}</td></tr>`).join('')}</tbody></table></div>
+  </div>${fig('fH','0 0 460 290',L('Рис. 2. График нагревания и кипения воды','2-сурет. Судың қызу және қайнау графигі'))}</div>
+
+  <div class="card tcard"><div class="stack">
+    <h2>${L('3. Насыщенный и ненасыщенный пар','3. Қаныққан және қанықпаған бу')}</h2>
+    <p>${L('В <b>закрытом</b> сосуде молекулы пара не только вылетают из жидкости, но и возвращаются в неё. Сначала испарение преобладает, концентрация пара растёт, растёт и число возвращающихся молекул. Наступает <b>динамическое равновесие</b>: за единицу времени из жидкости вылетает столько же молекул, сколько возвращается.','<b>Жабық</b> ыдыста бу молекулалары сұйықтан ұшып шығып қана қоймай, оған қайта оралады. Алдымен булану басым болады, бу концентрациясы өседі, қайтып оралатын молекулалар саны да артады. <b>Динамикалық тепе-теңдік</b> орнайды: уақыт бірлігінде сұйықтан қанша молекула ұшып шықса, сонша молекула қайтып оралады.')}</p>
+    <div class="defn">${L('<b>Насыщенный пар</b> — пар, находящийся в динамическом равновесии со своей жидкостью.<br><b>Ненасыщенный пар</b> — пар, давление и плотность которого меньше, чем у насыщенного пара при той же температуре.','<b>Қаныққан бу</b> — өз сұйығымен динамикалық тепе-теңдікте тұрған бу.<br><b>Қанықпаған бу</b> — қысымы мен тығыздығы сол температурадағы қаныққан будың қысымы мен тығыздығынан кіші бу.')}</div>
+    <p class="note">${L('Ненасыщенный пар можно сделать насыщенным: изотермически сжать его или охладить.','Қанықпаған буды қаныққан буға айналдыруға болады: оны изотермиялық сығу немесе салқындату арқылы.')}</p>
+  </div>${fig('fQ','0 0 420 275',L('Рис. 3. Динамическое равновесие','3-сурет. Динамикалық тепе-теңдік'))}</div>
+
+  <div class="card tcard"><div class="stack">
+    <h2>${L('4. Свойства насыщенного пара','4. Қаныққан будың қасиеттері')}</h2>
+    <ul class="clean">
+      <li>${L('<b>Давление насыщенного пара p<sub>н</sub> не зависит от объёма</b> (при T = const). При сжатии часть пара конденсируется, при расширении — часть жидкости испаряется, а концентрация молекул пара остаётся прежней.','<b>Қаныққан бу қысымы p<sub>қ</sub> көлемге тәуелді емес</b> (T = const). Сыққанда будың бір бөлігі конденсацияланады, ұлғайғанда сұйықтың бір бөлігі буланады, ал бу молекулаларының концентрациясы өзгермейді.')}</li>
+      <li>${L('<b>p<sub>н</sub> зависит только от температуры и рода вещества</b> и растёт с температурой быстрее, чем давление идеального газа: в формуле p = nkT растёт не только T, но и концентрация n (жидкость испаряется).','<b>p<sub>қ</sub> тек температура мен заттың тегіне тәуелді</b> және температура артқанда идеал газ қысымынан жылдамырақ өседі: p = nkT формуласында T ғана емес, n концентрациясы да артады (сұйық буланады).')}</li>
+      <li>${L('Законы идеального газа для данной массы (Бойля — Мариотта, Шарля) к насыщенному пару неприменимы, а ненасыщенный пар им приближённо подчиняется. Формула p = nkT справедлива для обоих.','Берілген масса үшін идеал газ заңдары (Бойль — Мариотт, Шарль) қаныққан буға қолданылмайды, ал қанықпаған бу оларға жуықтап бағынады. p = nkT формуласы екеуіне де дұрыс.')}</li>
+    </ul>
+    <span class="fblock">p<sub>${L('н','қ')}</sub> = n<sub>${L('н','қ')}</sub>kT, &nbsp; ρ<sub>${L('н','қ')}</sub> = ${frac('p<sub>'+L('н','қ')+'</sub>M','RT')}</span>
+  </div>${fig('fPV','0 0 460 290',L('Рис. 4. Изотерма: сжатие пара','4-сурет. Изотерма: буды сығу'))}</div>
+
+  <div class="card tcard"><div class="stack">
+    <h2>${L('5. Зависимость температуры кипения от давления','5. Қайнау температурасының қысымға тәуелділігі')}</h2>
+    <div class="defn">${L('Жидкость кипит при температуре, при которой <b>давление её насыщенного пара равно внешнему давлению</b>: p<sub>н</sub>(t<sub>кип</sub>) = p<sub>внеш</sub>.','Сұйық <b>оның қаныққан буының қысымы сыртқы қысымға тең</b> болатын температурада қайнайды: p<sub>қ</sub>(t<sub>қайн</sub>) = p<sub>сырт</sub>.')}</div>
+    <p>${L('Пузырёк пара внутри жидкости может расти, только если давление пара в нём не меньше внешнего давления. Поэтому при меньшем давлении (в горах) вода кипит при более низкой температуре, а в скороварке, где давление выше, — при более высокой (около 120 °C).','Сұйық ішіндегі бу көпіршігі ондағы бу қысымы сыртқы қысымнан кем болмағанда ғана өсе алады. Сондықтан қысым аз болғанда (тауда) су төменірек температурада, ал қысым жоғары жылдам пісіргіште (скороварка) жоғарырақ температурада (шамамен 120 °C) қайнайды.')}</p>
+    <p class="note">${L('<b>Критическая температура</b> — температура, выше которой газ нельзя превратить в жидкость никаким сжатием. Для воды t<sub>кр</sub> = 374 °C. Ниже критической температуры газ называют паром.','<b>Кризистік температура</b> — бұдан жоғары температурада газды ешқандай сығумен сұйыққа айналдыру мүмкін емес. Су үшін t<sub>кр</sub> = 374 °C. Кризистік температурадан төмен газды бу деп атайды.')}</p>
+  </div>${fig('fPT','0 0 460 290',L('Рис. 5. Кривая p<sub>н</sub>(t) для воды','5-сурет. Су үшін p<sub>қ</sub>(t) қисығы').replace(/<\/?sub>/g,''))}</div>`;
+  figEvap($('#fE'));figHeat($('#fH'));figEq($('#fQ'));figPV($('#fPV'));figPT($('#fPT'));
+}
+
+/* ================= МОДЕЛЬ ================= */
+const SIM={t:60,V:3,m0:0.5,mt:0.5,mv:0,open:false,parts:[],E:0,C:0,flash:[]};
+const KA=1.6, PSCALE=260;
+function simEq(){SIM.mv=Math.min(SIM.mt,rhoSat(SIM.t)*SIM.V);}
+const simP=()=>SIM.mv/SIM.V*R*(SIM.t+273)/MW/1000; // кПа
+const GEO={x0:90,x1:470,bot:470,top:70,vmax:6};
+const hOf=V=>V/GEO.vmax*(GEO.bot-GEO.top);
+const liqH=()=>Math.max(0,(SIM.mt-SIM.mv))*110+((SIM.mt-SIM.mv)>1e-4?6:0);
+function simStep(dt){
+  const rs=rhoSat(SIM.t), rv=SIM.mv/SIM.V, ml=SIM.mt-SIM.mv;
+  if(ml>1e-5||rv>rs){SIM.E=KA*rs;SIM.C=KA*rv;}else{SIM.E=0;SIM.C=0;}
+  let dm=(SIM.E-SIM.C)*dt; if(dm>0)dm=Math.min(dm,ml);
+  SIM.mv=Math.max(0,Math.min(SIM.mt,SIM.mv+dm));
+  if(SIM.open){const loss=SIM.mv*1.4*dt;SIM.mv-=loss;SIM.mt-=loss;if(SIM.mt<1e-6){SIM.mt=0;SIM.mv=0;}}
+  // частицы
+  const surf=GEO.bot-liqH(), top=GEO.bot-hOf(SIM.V)+12, sp=70*Math.sqrt((SIM.t+273)/333);
+  const target=Math.min(320,Math.round(SIM.mv*PSCALE));
+  let alive=SIM.parts.filter(p=>!p.die);
+  while(alive.length<target){const p={x:GEO.x0+12+Math.random()*(GEO.x1-GEO.x0-24),y:ml>1e-5?surf-6:top+Math.random()*(surf-top-10),vx:(Math.random()-.5)*sp,vy:-Math.random()*sp-sp*.3,hi:ml>1e-5?0.6:0};SIM.parts.push(p);alive.push(p);}
+  if(alive.length>target){shuffle(alive).slice(0,alive.length-target).forEach(p=>{p.die=true;p.vy=Math.abs(p.vy)+sp*.5;});}
+  const pE=SIM.E*dt*3; // вероятность «обмена» молекулами
+  SIM.parts.forEach(p=>{
+    if(Math.random()<.04){const a=Math.random()*6.283;p.vx=Math.cos(a)*sp;p.vy=Math.sin(a)*sp;if(p.die)p.vy=Math.abs(p.vy)+sp*.4;}
+    p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.hi>0)p.hi-=dt;
+    if(p.x<GEO.x0+8){p.x=GEO.x0+8;p.vx=Math.abs(p.vx);}if(p.x>GEO.x1-8){p.x=GEO.x1-8;p.vx=-Math.abs(p.vx);}
+    if(p.y<top){p.y=top;p.vy=Math.abs(p.vy);}
+    if(p.y>surf-5){
+      if(p.die){p.gone=true;SIM.flash.push({x:p.x,y:surf,t:.5,c:'c4'});}
+      else if(ml>1e-5&&Math.random()<Math.min(.9,pE*40)){ // молекула вернулась, другая вылетела
+        SIM.flash.push({x:p.x,y:surf,t:.5,c:'c4'});p.x=GEO.x0+12+Math.random()*(GEO.x1-GEO.x0-24);p.y=surf-6;p.vy=-sp;p.hi=.6;SIM.flash.push({x:p.x,y:surf,t:.5,c:'c2'});}
+      else{p.y=surf-5;p.vy=-Math.abs(p.vy);}
+    }});
+  SIM.parts=SIM.parts.filter(p=>!p.gone&&p.y>top-30);
+  SIM.flash.forEach(f=>f.t-=dt);SIM.flash=SIM.flash.filter(f=>f.t>0);
+}
+function drawVessel(){
+  const cv=$('#cv'),g=cv.getContext('2d'),W=cv.width,H=cv.height;g.clearRect(0,0,W,H);
+  const ink=cssv('--ink'),mut=cssv('--muted'),c1=cssv('--c1'),c2=cssv('--c2'),c4=cssv('--c4'),sur=cssv('--surface');
+  const top=GEO.bot-hOf(SIM.V), surf=GEO.bot-liqH();
+  // пламя
+  const fl=(SIM.t-15)/85;g.fillStyle=c2;for(let i=0;i<5;i++){const x=GEO.x0+40+i*(GEO.x1-GEO.x0-80)/4,h=12+fl*26*(0.8+0.2*Math.sin(Date.now()/150+i));g.beginPath();g.moveTo(x-10,GEO.bot+40);g.quadraticCurveTo(x-8,GEO.bot+40-h*.6,x,GEO.bot+40-h);g.quadraticCurveTo(x+8,GEO.bot+40-h*.6,x+10,GEO.bot+40);g.fill();}
+  // жидкость
+  if(surf<GEO.bot){g.fillStyle=c1;g.globalAlpha=.28;g.fillRect(GEO.x0,surf,GEO.x1-GEO.x0,GEO.bot-surf);g.globalAlpha=1;g.strokeStyle=c1;g.lineWidth=2;g.beginPath();g.moveTo(GEO.x0,surf);g.lineTo(GEO.x1,surf);g.stroke();}
+  // молекулы
+  SIM.parts.forEach(p=>{g.fillStyle=p.hi>0?c2:c1;g.globalAlpha=p.die?.5:.9;g.beginPath();g.arc(p.x,p.y,p.hi>0?6:5,0,6.283);g.fill();});g.globalAlpha=1;
+  SIM.flash.forEach(f=>{g.strokeStyle=f.c==='c2'?c2:c4;g.globalAlpha=f.t*2;g.lineWidth=2;g.beginPath();g.arc(f.x,f.y,10*(1.5-f.t),0,6.283);g.stroke();});g.globalAlpha=1;
+  // стенки
+  g.strokeStyle=mut;g.lineWidth=5;g.beginPath();g.moveTo(GEO.x0-3,40);g.lineTo(GEO.x0-3,GEO.bot+3);g.lineTo(GEO.x1+3,GEO.bot+3);g.lineTo(GEO.x1+3,40);g.stroke();
+  // поршень
+  if(!SIM.open){g.fillStyle=mut;g.fillRect(GEO.x0,top-16,GEO.x1-GEO.x0,16);g.fillRect((GEO.x0+GEO.x1)/2-7,top-60,14,46);}
+  else{g.strokeStyle=mut;g.setLineDash([6,6]);g.lineWidth=2;g.beginPath();g.moveTo(GEO.x0,top);g.lineTo(GEO.x1,top);g.stroke();g.setLineDash([]);g.fillStyle=mut;g.font='18px PT Sans, Arial';g.textAlign='center';g.fillText(L('поршень снят — пар уходит','поршень алынған — бу шығып кетеді'),(GEO.x0+GEO.x1)/2,top-12);}
+  // шкала объёма
+  g.fillStyle=mut;g.font='16px PT Serif, Georgia';g.textAlign='right';for(let v=1;v<=6;v++){const y=GEO.bot-hOf(v);g.fillRect(GEO.x0-14,y,8,2);g.fillText(v+' '+L('л','л'),GEO.x0-18,y+5);}
+  // термометр
+  const tx=GEO.x1+40,ty0=GEO.bot-20,ty1=110;g.strokeStyle=mut;g.lineWidth=2;g.strokeRect(tx-6,ty1,12,ty0-ty1);g.fillStyle=c2;const th=(SIM.t)/100*(ty0-ty1);g.fillRect(tx-4,ty0-th,8,th);g.beginPath();g.arc(tx,ty0+8,11,0,6.283);g.fill();
+  g.fillStyle=ink;g.textAlign='center';g.font='bold 18px PT Serif, Georgia';g.fillText(Math.round(SIM.t)+' °C',tx,ty1-12);
+  if(SIM.mt-SIM.mv>1e-4){g.fillStyle=mut;g.font='14px PT Sans, Arial';g.textAlign='left';g.fillText(L('слой воды показан увеличенным','су қабаты үлкейтіп көрсетілген'),GEO.x0+6,GEO.bot+64);}
+}
+function simStatus(){const rs=rhoSat(SIM.t),rv=SIM.mv/SIM.V,ml=SIM.mt-SIM.mv,phi=rv/rs;
+  if(SIM.mt<=1e-6)return['uns',L('Воды не осталось — вся вода испарилась и пар ушёл.','Су қалмады — су толық буланып, бу шығып кетті.')];
+  if(SIM.open&&ml>1e-5)return['uns',L('Сосуд открыт: пар уходит, равновесие не наступает — вода продолжает испаряться.','Ыдыс ашық: бу шығып кетеді, тепе-теңдік орнамайды — су булануын жалғастырады.')];
+  if(phi>1.015)return['cond',L('Пар пересыщен: конденсация преобладает над испарением.','Бу аса қаныққан: конденсация буланудан басым.')];
+  if(ml>1e-5&&phi>0.985)return['sat',L('Пар НАСЫЩЕННЫЙ: динамическое равновесие, p = pн(t).','Бу ҚАНЫҚҚАН: динамикалық тепе-теңдік, p = pқ(t).')];
+  if(ml>1e-5)return['uns',L('Пар ненасыщенный: испарение преобладает над конденсацией.','Бу қанықпаған: булану конденсациядан басым.')];
+  return['uns',L('Вся вода испарилась: пар НЕНАСЫЩЕННЫЙ, ведёт себя как идеальный газ (pV = const при t = const).','Су толық буланды: бу ҚАНЫҚПАҒАН, идеал газ сияқты (t = const кезінде pV = const).')];}
+let lastPV='';
+function drawPV(){const svg=$('#pvSvg');const key=[SIM.t,SIM.mt.toFixed(4),SIM.open,LANG].join('|');const ps=psat(SIM.t);
+  if(key!==lastPV){lastPV=key;svg.innerHTML='';
+    const pmax=ps*1.6;const P=mkPlot(svg,{x0:0,x1:6,y0:0,y1:pmax,W:620,H:380,pl:70});svg._P=P;
+    const step=[.5,1,2,5,10,20,25,50][[.5,1,2,5,10,20,25,50].findIndex(s=>pmax/s<=6)]||50;const yt=[];for(let v=0;v<=pmax;v+=step)yt.push(v);
+    axes(svg,P,{x0:0,x1:6,y0:0,y1:pmax,xt:[0,1,2,3,4,5,6],yt,xl:L('V, л','V, л'),yl:L('p, кПа','p, кПа')});
+    el('line',{x1:P.X(0),x2:P.X(6),y1:P.Y(ps),y2:P.Y(ps),stroke:'var(--c1)','stroke-dasharray':'6 6','stroke-width':1.5},svg);
+    txt(svg,L('pн','pқ')+' = '+fmt(ps)+' '+L('кПа','кПа'),P.X(6),P.Y(ps)-8,{'text-anchor':'end','font-size':16,fill:'var(--c1)'});
+    if(!SIM.open&&SIM.mt>0){const Vs=SIM.mt/rhoSat(SIM.t);const a=[],b=[];for(let V=0.3;V<=6.001;V+=0.02){const p=V<Vs?ps:SIM.mt*R*(SIM.t+273)/MW/1000/V;(V<Vs?a:b).push([P.X(V),P.Y(Math.min(p,pmax))]);}
+      if(b.length&&a.length)b.unshift(a[a.length-1]);path(svg,a,{stroke:'var(--c1)'});path(svg,b,{stroke:'var(--c4)'});
+      if(Vs<6){el('line',{x1:P.X(Vs),x2:P.X(Vs),y1:P.Y(0),y2:P.Y(ps),stroke:'var(--muted)','stroke-dasharray':'3 5'},svg);txt(svg,'V'+L('нас','қан'),P.X(Vs),P.Y(0)-8,{'text-anchor':'middle','font-size':15,fill:'var(--muted)'});}}
+    svg._pt=el('circle',{r:9,fill:'var(--c2)',stroke:'var(--surface)','stroke-width':3},svg);}
+  const P=svg._P;svg._pt.setAttribute('cx',P.X(SIM.V));svg._pt.setAttribute('cy',P.Y(Math.min(simP(),ps*1.6)));
+  $('#pvLeg').innerHTML=`<span><i style="background:var(--c1)"></i>${L('насыщенный пар + вода: p = pн','қаныққан бу + су: p = pқ')}</span><span><i style="background:var(--c4)"></i>${L('ненасыщенный пар: pV = const','қанықпаған бу: pV = const')}</span><span><i style="background:var(--c2)"></i>${L('текущее состояние','қазіргі күй')}</span>`;}
+function drawSimUI(){
+  const ps=psat(SIM.t),p=simP(),rs=rhoSat(SIM.t),rv=SIM.mv/SIM.V,ml=Math.max(0,SIM.mt-SIM.mv);
+  const[cl,msg]=simStatus();const st=$('#mStatus');st.className='status '+cl;st.textContent=msg;
+  $('#mRead').innerHTML=[[L('Давление пара p','Бу қысымы p'),fmt(p)+' '+L('кПа','кПа')],[L('pн при этой t','осы t кезіндегі pқ'),fmt(ps)+' '+L('кПа','кПа')],[L('Плотность пара','Бу тығыздығы'),fmt(rv*1000)+' '+L('г/м³','г/м³')],[L('ρн при этой t','осы t кезіндегі ρқ'),fmt(rs*1000)+' '+L('г/м³','г/м³')],[L('Масса пара','Бу массасы'),fmt(SIM.mv*1000)+' '+L('мг','мг')],[L('Масса воды','Су массасы'),fmt(ml*1000)+' '+L('мг','мг')],['p / p'+L('н','қ'),Math.round(p/ps*100)+' %']]
+    .map(([k,v])=>`<div><span class="k">${k}</span><span class="v">${v}</span></div>`).join('');
+  const mx=Math.max(SIM.E,SIM.C,1e-9);
+  $('#mFlux').innerHTML=`<span>${L('испарение','булану')} ↑</span><span class="bar"><i style="width:${SIM.E/mx*100}%;background:var(--c2)"></i></span><span class="m">${fmt(SIM.E*1000,2)}</span>
+    <span>${L('конденсация','конденсация')} ↓</span><span class="bar"><i style="width:${SIM.C/mx*100}%;background:var(--c4)"></i></span><span class="m">${fmt(SIM.C*1000,2)}</span>
+    <span></span><span style="color:var(--muted);font-size:.8rem">${L('мг/с — масса, переходящая за 1 с','мг/с — 1 с ішінде ауысатын масса')}</span><span></span>`;
+  $('#mTv').textContent=Math.round(SIM.t)+' °C';$('#mVv').textContent=fmt(SIM.V,3).replace(/,?0+$/,'')+' '+L('л','л');
+  drawPV();
+}
+function syncModelCtrls(){$('#mM').innerHTML=[0.2,0.5,1].map(m=>`<button data-m="${m}" aria-pressed="${m===SIM.m0}">${fmt(m)} ${L('г','г')}</button>`).join('');
+  $('#mLid').innerHTML=`<button data-lid="0" aria-pressed="${!SIM.open}">${L('сосуд закрыт','ыдыс жабық')}</button><button data-lid="1" aria-pressed="${SIM.open}">${L('сосуд открыт','ыдыс ашық')}</button>`;
+  $('#mObs').innerHTML=[L('При закрытом сосуде установите t = 60 °C и медленно уменьшайте объём: давление не меняется, масса пара уменьшается — пар конденсируется.','Ыдыс жабық, t = 60 °C қойып, көлемді баяу азайтыңыз: қысым өзгермейді, бу массасы азаяды — бу конденсацияланады.'),
+    L('Увеличивайте объём, пока вся вода не испарится. Дальше пар ненасыщенный: давление падает обратно пропорционально объёму.','Су толық буланғанша көлемді арттырыңыз. Әрі қарай бу қанықпаған: қысым көлемге кері пропорционал кемиді.'),
+    L('Меняйте температуру при насыщенном паре: давление растёт очень быстро (сравните 20 °C и 100 °C).','Қаныққан бу кезінде температураны өзгертіңіз: қысым өте тез өседі (20 °C пен 100 °C-ты салыстырыңыз).'),
+    L('Откройте сосуд: пар уходит, равновесие не наступает, и вода постепенно полностью испаряется.','Ыдысты ашыңыз: бу шығып кетеді, тепе-теңдік орнамайды, су біртіндеп толық буланады.'),
+    L('Оранжевые вспышки — молекулы, вылетевшие из воды, зелёные — вернувшиеся. При равновесии их поровну.','Сарғылт жарқылдар — судан ұшып шыққан молекулалар, жасылдар — қайтып оралғандар. Тепе-теңдікте олар тең.')].map(s=>`<li>${s}</li>`).join('');}
+$('#mT').addEventListener('input',e=>{SIM.t=+e.target.value;drawSimUI();});
+$('#mV').addEventListener('input',e=>{SIM.V=+e.target.value;});
+$('#mM').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;SIM.m0=+b.dataset.m;SIM.mt=SIM.m0;simEq();syncModelCtrls();});
+$('#mLid').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;SIM.open=b.dataset.lid==='1';syncModelCtrls();});
+$('#mRefill').addEventListener('click',()=>{SIM.mt=SIM.m0;SIM.mv=Math.min(SIM.mv,SIM.mt);});
+let simLast=Date.now();
+setInterval(()=>{const now=Date.now();const dt=Math.min(.1,(now-simLast)/1000);simLast=now;if($('#p-model').hidden)return;simStep(dt);drawVessel();drawSimUI();},40);
+
+/* ================= ДАВЛЕНИЕ И КИПЕНИЕ ================= */
+const PLACES=()=>[
+  {n:L('Берег Каспия (−28 м)','Каспий жағалауы (−28 м)'),h:-28},{n:L('Астана (350 м)','Астана (350 м)'),h:350},{n:L('Алматы (800 м)','Алматы (800 м)'),h:800},{n:L('Медеу (1700 м)','Медеу (1700 м)'),h:1700},
+  {n:L('Шымбулак (2260 м)','Шымбұлақ (2260 м)'),h:2260},{n:L('Пик Талгар (4979 м)','Талғар шыңы (4979 м)'),h:4979},{n:L('Хан-Тенгри (7010 м)','Хан Тәңірі (7010 м)'),h:7010},{n:L('Эверест (8849 м)','Эверест (8849 м)'),h:8849},
+  {n:L('Скороварка (≈ 200 кПа)','Жылдам пісіргіш (≈ 200 кПа)'),p:200}];
+const B={p:101.3,place:-1,t:60,ch:false};
+function drawBoil(){const tb=tboil(B.p);
+  $('#bPlace').innerHTML=PLACES().map((pl,i)=>`<button data-k="${i}" aria-pressed="${i===B.place}">${pl.n}</button>`).join('');
+  $('#bP').value=B.p;$('#bPv').textContent=fmt(B.p)+' '+L('кПа','кПа');
+  $('#bRead').innerHTML=[[L('Внешнее давление','Сыртқы қысым'),fmt(B.p)+' '+L('кПа','кПа')],[L('в мм рт. ст.','мм сын. бағ.'),Math.round(B.p*1000/133.3)],[L('Вода кипит при','Су қайнайды'),fmt(tb,3)+' °C']].map(([k,v])=>`<div><span class="k">${k}</span><span class="v">${v}</span></div>`).join('');
+  $('#bNote').innerHTML=tb<99.5?L(`Давление меньше нормального, поэтому p<sub>н</sub> = p<sub>внеш</sub> достигается раньше: вода закипает при ${fmt(tb,3)} °C. Продукты варятся дольше.`,`Қысым қалыпты қысымнан аз, сондықтан p<sub>қ</sub> = p<sub>сырт</sub> ертерек орындалады: су ${fmt(tb,3)} °C-та қайнайды. Тағам ұзағырақ піседі.`)
+    :tb>100.5?L(`Давление больше нормального: чтобы p<sub>н</sub> сравнялось с внешним, воду нужно нагреть до ${fmt(tb,3)} °C. Пища готовится быстрее.`,`Қысым қалыпты қысымнан көп: p<sub>қ</sub> сыртқы қысымға теңелуі үшін суды ${fmt(tb,3)} °C-қа дейін қыздыру керек. Тағам тезірек піседі.`)
+    :L('При нормальном атмосферном давлении (101,3 кПа) вода кипит при 100 °C.','Қалыпты атмосфералық қысымда (101,3 кПа) су 100 °C-та қайнайды.');
+  $('#bTable').innerHTML=`<thead><tr><th>t, °C</th><th>p<sub>${L('н','қ')}</sub>, ${L('кПа','кПа')}</th><th>ρ<sub>${L('н','қ')}</sub>, ${L('г/м³','г/м³')}</th><th>t, °C</th><th>p<sub>${L('н','қ')}</sub>, ${L('кПа','кПа')}</th><th>ρ<sub>${L('н','қ')}</sub>, ${L('г/м³','г/м³')}</th></tr></thead><tbody>`+
+    [0,5,10,15,20,25,30,40,50,60].map((t,i)=>{const t2=[70,80,90,100,110,120,'','','',''][i];const c=t=>t===''?'<td></td><td></td><td></td>':`<td>${t}</td><td>${fmt(psat(t))}</td><td>${fmt(rhoSat(t)*1000)}</td>`;return `<tr>${c(t)}${c(t2)}</tr>`;}).join('')+'</tbody>';
+  drawPS();}
+function drawPS(){const svg=$('#psSvg');svg.innerHTML='';const P=mkPlot(svg,{x0:0,x1:120,y0:0,y1:210,W:700,H:470,pl:70});
+  axes(svg,P,{x0:0,x1:120,y0:0,y1:210,xt:[0,20,40,60,80,100,120],yt:[0,50,100,150,200],xl:'t, °C',yl:L('p, кПа','p, кПа')});
+  const pts=[];for(let t=0;t<=120;t+=.5)pts.push([P.X(t),P.Y(psat(t))]);path(svg,pts,{stroke:'var(--c1)'});
+  if(B.ch){const rho=0.3,ts=tboil(rho*R*373/MW/1000);let t0=0;for(;t0<120;t0+=.1)if(rhoSat(t0)>=rho)break;
+    const a=[];for(let t=t0;t<=120;t+=1)a.push([P.X(t),P.Y(rho*R*(t+273)/MW/1000)]);path(svg,a,{stroke:'var(--c4)','stroke-dasharray':'8 6'});
+    el('circle',{cx:P.X(t0),cy:P.Y(psat(t0)),r:6,fill:'var(--c4)'},svg);}
+  el('line',{x1:P.X(0),x2:P.X(120),y1:P.Y(B.p),y2:P.Y(B.p),stroke:'var(--c2)','stroke-width':2,'stroke-dasharray':'6 5'},svg);
+  txt(svg,L('pвнеш','pсырт')+' = '+fmt(B.p)+' '+L('кПа','кПа'),P.X(2),P.Y(B.p)-8,{'font-size':16,fill:'var(--c2)'});
+  const tb=tboil(B.p);el('line',{x1:P.X(tb),x2:P.X(tb),y1:P.Y(0),y2:P.Y(B.p),stroke:'var(--c2)','stroke-dasharray':'3 4'},svg);
+  el('circle',{cx:P.X(tb),cy:P.Y(B.p),r:8,fill:'var(--c2)'},svg);txt(svg,'t'+L('кип','қайн')+' = '+fmt(tb,3)+' °C',P.X(tb)+(tb>95?-12:12),P.Y(B.p)-12,{'text-anchor':tb>95?'end':'start','font-size':16,'font-weight':'bold',fill:'var(--c2)'});
+  const ps=psat(B.t);el('line',{x1:P.X(B.t),x2:P.X(B.t),y1:P.Y(0),y2:P.Y(ps),stroke:'var(--c1)','stroke-dasharray':'3 4'},svg);el('line',{x1:P.X(0),x2:P.X(B.t),y1:P.Y(ps),y2:P.Y(ps),stroke:'var(--c1)','stroke-dasharray':'3 4'},svg);
+  el('circle',{cx:P.X(B.t),cy:P.Y(ps),r:8,fill:'var(--c1)'},svg);txt(svg,fmt(ps)+' '+L('кПа','кПа'),P.X(B.t)+12,P.Y(ps)+24,{'font-size':16,'font-weight':'bold',fill:'var(--c1)'});
+  $('#bTv').textContent=B.t+' °C';$('#bCh').checked=B.ch;
+  $('#psLeg').innerHTML=`<span><i style="background:var(--c1)"></i>${L('pн(t) — насыщенный пар','pқ(t) — қаныққан бу')}</span><span><i style="background:var(--c2)"></i>${L('внешнее давление и t кипения','сыртқы қысым және қайнау t')}</span>${B.ch?`<span><i style="background:var(--c4)"></i>${L('вода испарилась, пар ненасыщенный (ρ = 300 г/м³): p ~ T','су буланып бітті, бу қанықпаған (ρ = 300 г/м³): p ~ T')}</span>`:''}`;}
+$('#bPlace').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;B.place=+b.dataset.k;const pl=PLACES()[B.place];B.p=Math.round((pl.p||pAlt(pl.h))*10)/10;drawBoil();});
+$('#bP').addEventListener('input',e=>{B.p=+e.target.value;B.place=-1;drawBoil();});
+$('#bT').addEventListener('input',e=>{B.t=+e.target.value;drawPS();});
+$('#bCh').addEventListener('change',e=>{B.ch=e.target.checked;drawPS();});
+
+/* ================= ЗАДАЧИ ================= */
+const nC=x=>fmt(x,3);
+const tPs=[20,40,60,80,100];
+const PCAT=()=>({heat:L('Q = Lm','Q = Lm'),heat2:L('Нагревание и кипение','Қызу және қайнау'),cond:L('Конденсация и остывание','Конденсация және суу'),mass:L('Масса насыщенного пара','Қаныққан бу массасы'),comp:L('Сжатие насыщенного пара','Қаныққан буды сығу'),uns:L('Ненасыщенный пар','Қанықпаған бу'),boil:L('Кипение и давление','Қайнау және қысым')});
+function pHeat(){const s=pick(SUBST().slice(0,3)),m=pick([0.2,0.3,0.5,0.8,1,1.5,2,2.5]);const Q=s.L*m;
+  return{text:L(`Какое количество теплоты необходимо, чтобы превратить в пар ${fmt(m)} кг ${s.g}, взятой при температуре кипения (${fmt(s.t)} °C)?`,`Қайнау температурасында (${fmt(s.t)} °C) алынған ${fmt(m)} кг ${s.g} буға айналдыру үшін қандай жылу мөлшері қажет?`).replace('спирта, взятой','спирта, взятого').replace('эфира, взятой','эфира, взятого'),
+    given:`m = ${fmt(m)} ${L('кг','кг')}; L = ${fmt(s.L)} ${L('Дж/кг','Дж/кг')}`,
+    steps:[{why:L('Вещество уже при температуре кипения — нагревать не нужно:','Зат қайнау температурасында — қыздыру қажет емес:'),mx:'Q = Lm'},{why:L('Подставляем:','Орнына қоямыз:'),mx:`Q = ${fmt(s.L)} · ${fmt(m)} = ${fmt(Q)} ${L('Дж','Дж')}`}],ans:Q/1000,unit:L('кДж','кДж'),tol:.02};}
+function pHeat2(){const m=pick([0.2,0.5,1,1.5,2]),t0=pick([10,15,20,25,30,40]);const Q1=CW*m*(100-t0),Q2=LW*m,Q=Q1+Q2;
+  return{text:L(`Какое количество теплоты нужно, чтобы ${fmt(m)} кг воды при температуре ${t0} °C нагреть до кипения и полностью превратить в пар? Давление нормальное.`,`Температурасы ${t0} °C ${fmt(m)} кг суды қайнағанға дейін қыздырып, толық буға айналдыру үшін қандай жылу мөлшері қажет? Қысым қалыпты.`),
+    given:`m = ${fmt(m)} ${L('кг','кг')}; t₁ = ${t0} °C; t₂ = 100 °C; c = 4200 ${L('Дж/(кг·°C)','Дж/(кг·°C)')}; L = 2,3·10⁶ ${L('Дж/кг','Дж/кг')}`,
+    steps:[{why:L('Нагревание воды до 100 °C:','Суды 100 °C-қа дейін қыздыру:'),mx:`Q₁ = cm(t₂ − t₁) = 4200 · ${fmt(m)} · ${100-t0} = ${fmt(Q1)} ${L('Дж','Дж')}`},{why:L('Парообразование при 100 °C:','100 °C-та бу түзілу:'),mx:`Q₂ = Lm = 2,3·10⁶ · ${fmt(m)} = ${fmt(Q2)} ${L('Дж','Дж')}`},{why:L('Всего:','Барлығы:'),mx:`Q = Q₁ + Q₂ = ${fmt(Q)} ${L('Дж','Дж')} = ${fmt(Q/1e6)} ${L('МДж','МДж')}`}],ans:Q/1e6,unit:L('МДж','МДж'),tol:.02};}
+function pCond(){const m=pick([0.1,0.2,0.5,1,2]),t=pick([20,30,40,50,60]);const Q1=LW*m,Q2=CW*m*(100-t),Q=Q1+Q2;
+  return{text:L(`Какое количество теплоты выделится при конденсации ${fmt(m)} кг водяного пара, взятого при 100 °C, и остывании получившейся воды до ${t} °C?`,`100 °C-тағы ${fmt(m)} кг су буы конденсацияланып, пайда болған су ${t} °C-қа дейін суығанда қандай жылу мөлшері бөлінеді?`),
+    given:`m = ${fmt(m)} ${L('кг','кг')}; t = ${t} °C; c = 4200 ${L('Дж/(кг·°C)','Дж/(кг·°C)')}; L = 2,3·10⁶ ${L('Дж/кг','Дж/кг')}`,
+    steps:[{why:L('Конденсация пара при 100 °C (теплота выделяется):','100 °C-та будың конденсациясы (жылу бөлінеді):'),mx:`Q₁ = Lm = 2,3·10⁶ · ${fmt(m)} = ${fmt(Q1)} ${L('Дж','Дж')}`},{why:L('Остывание воды от 100 °C:','Судың 100 °C-тан суынуы:'),mx:`Q₂ = cm(100 − ${t}) = 4200 · ${fmt(m)} · ${100-t} = ${fmt(Q2)} ${L('Дж','Дж')}`},{why:L('Всего выделится:','Барлығы бөлінеді:'),mx:`Q = ${fmt(Q)} ${L('Дж','Дж')} = ${fmt(Q/1e6)} ${L('МДж','МДж')}`}],ans:Q/1e6,unit:L('МДж','МДж'),tol:.02};}
+function pMass(){const t=pick([10,15,20,25,30]),a=pick([4,5,6]),b=pick([3,4,5]),h=pick([2.5,3]);const V=a*b*h;const ps=psat(t);const psR=Math.round(ps*1000/10)*10;const T=t+273;const m=psR*V*MW/(R*T);
+  return{text:L(`В комнате размером ${a} × ${b} × ${fmt(h)} м при температуре ${t} °C водяной пар насыщенный. Давление насыщенного пара при этой температуре ${fmt(psR/1000)} кПа. Найдите массу пара в комнате.`,`Өлшемі ${a} × ${b} × ${fmt(h)} м бөлмеде ${t} °C температурада су буы қаныққан. Осы температурадағы қаныққан бу қысымы ${fmt(psR/1000)} кПа. Бөлмедегі бу массасын табыңдар.`),
+    given:`V = ${fmt(V)} ${L('м³','м³')}; T = ${T} K; p${L('н','қ')} = ${fmt(psR)} ${L('Па','Па')}; M = 0,018 ${L('кг/моль','кг/моль')}`,
+    steps:[{why:L('Объём комнаты:','Бөлме көлемі:'),mx:`V = ${a} · ${b} · ${fmt(h)} = ${fmt(V)} ${L('м³','м³')}`},{why:L('Из уравнения Менделеева — Клапейрона pV = (m/M)RT:','Менделеев — Клапейрон теңдеуінен pV = (m/M)RT:'),mx:`m = ${frac('pVM','RT')} = ${frac(fmt(psR)+' · '+fmt(V)+' · 0,018','8,31 · '+T)} ≈ ${fmt(m)} ${L('кг','кг')}`}],ans:m*1000,unit:L('г','г'),tol:.025};}
+function pComp(){const t=pick(tPs),V1=pick([4,5,6,8,10]),k=pick([2,4]);const V2=V1/k;const psR=Math.round(psat(t)*10)/10;const rho=psR*1000*MW/(R*(t+273));const dm=rho*(V1-V2)/1000;
+  return{text:L(`В цилиндре под поршнем находится насыщенный водяной пар и немного воды при ${t} °C. Объём пара ${V1} л. Пар изотермически сжали до ${fmt(V2)} л. Какая масса пара сконденсировалась? Давление насыщенного пара при ${t} °C равно ${fmt(psR)} кПа.`,`Поршень астындағы цилиндрде ${t} °C-та қаныққан су буы мен аздаған су бар. Бу көлемі ${V1} л. Буды изотермиялық түрде ${fmt(V2)} л-ге дейін сықты. Будың қандай массасы конденсацияланды? ${t} °C-тағы қаныққан бу қысымы ${fmt(psR)} кПа.`),
+    given:`V₁ = ${V1} ${L('л','л')}; V₂ = ${fmt(V2)} ${L('л','л')}; p${L('н','қ')} = ${fmt(psR)} ${L('кПа','кПа')}; T = ${t+273} K`,
+    steps:[{why:L('При изотермическом сжатии насыщенного пара давление и плотность пара не меняются:','Қаныққан буды изотермиялық сыққанда бу қысымы мен тығыздығы өзгермейді:'),mx:`ρ${L('н','қ')} = ${frac('p'+L('н','қ')+'M','RT')} = ${frac(fmt(psR*1000)+' · 0,018','8,31 · '+(t+273))} ≈ ${fmt(rho)} ${L('кг/м³','кг/м³')}`},{why:L('Сконденсировался пар, занимавший объём V₁ − V₂:','V₁ − V₂ көлемді алып тұрған бу конденсацияланды:'),mx:`Δm = ρ${L('н','қ')}(V₁ − V₂) = ${fmt(rho)} · ${fmt((V1-V2)/1000)} ≈ ${fmt(dm)} ${L('кг','кг')} = ${fmt(dm*1e6)} ${L('мг','мг')}`}],ans:dm*1e6,unit:L('мг','мг'),tol:.025};}
+function pUns(){const t=pick(tPs),phi=pick([.4,.5,.6,.75,.8]);const ps=Math.round(psat(t)*10)/10;const p1=Math.round(ps*phi*10)/10;const V1=pick([4,5,6,10]);const kind=pick(['vs','p']);
+  if(kind==='vs'){const Vs=V1*p1/ps;return{text:L(`Ненасыщенный водяной пар при ${t} °C имеет давление ${fmt(p1)} кПа и занимает объём ${V1} л. До какого объёма его нужно изотермически сжать, чтобы он стал насыщенным? Давление насыщенного пара при ${t} °C равно ${fmt(ps)} кПа.`,`${t} °C-тағы қанықпаған су буының қысымы ${fmt(p1)} кПа, көлемі ${V1} л. Ол қаныққан бу болуы үшін оны қандай көлемге дейін изотермиялық сығу керек? ${t} °C-тағы қаныққан бу қысымы ${fmt(ps)} кПа.`),
+      given:`p₁ = ${fmt(p1)} ${L('кПа','кПа')}; V₁ = ${V1} ${L('л','л')}; p${L('н','қ')} = ${fmt(ps)} ${L('кПа','кПа')}`,
+      steps:[{why:L('Ненасыщенный пар подчиняется закону Бойля — Мариотта, пар станет насыщенным при p = pн:','Қанықпаған бу Бойль — Мариотт заңына бағынады, p = pқ болғанда бу қаныққан болады:'),mx:`p₁V₁ = p${L('н','қ')}V`},{why:L('Отсюда:','Осыдан:'),mx:`V = ${frac('p₁V₁','p'+L('н','қ'))} = ${frac(fmt(p1)+' · '+V1,fmt(ps))} ≈ ${fmt(Vs)} ${L('л','л')}`}],ans:Vs,unit:L('л','л'),tol:.02};}
+  const k=pick([2,3,4]);const V2=V1/k;const pIdeal=p1*k;const p2=Math.min(pIdeal,ps);
+  return{text:L(`Ненасыщенный водяной пар при ${t} °C имеет давление ${fmt(p1)} кПа. Его объём изотермически уменьшили в ${k} раза. Каким стало давление пара? Давление насыщенного пара при ${t} °C равно ${fmt(ps)} кПа.`,`${t} °C-тағы қанықпаған су буының қысымы ${fmt(p1)} кПа. Оның көлемін изотермиялық түрде ${k} есе азайтты. Бу қысымы қандай болды? ${t} °C-тағы қаныққан бу қысымы ${fmt(ps)} кПа.`),
+    given:`p₁ = ${fmt(p1)} ${L('кПа','кПа')}; V₂ = V₁/${k}; p${L('н','қ')} = ${fmt(ps)} ${L('кПа','кПа')}`,
+    steps:[{why:L('Если бы пар оставался ненасыщенным, по закону Бойля — Мариотта:','Егер бу қанықпаған күйде қалса, Бойль — Мариотт заңы бойынша:'),mx:`p₂ = ${k}p₁ = ${fmt(pIdeal)} ${L('кПа','кПа')}`},
+      pIdeal>ps?{why:L('Но это больше pн — давление пара не может превысить pн: пар стал насыщенным, лишний пар сконденсировался.','Бірақ бұл pқ-дан үлкен — бу қысымы pқ-дан аса алмайды: бу қаныққан болды, артық бу конденсацияланды.'),mx:`p₂ = p${L('н','қ')} = ${fmt(ps)} ${L('кПа','кПа')}`}
+      :{why:L('Это не больше pн, значит пар остался ненасыщенным (или только что стал насыщенным):','Бұл pқ-дан артық емес, демек бу қанықпаған күйде қалды (немесе дәл қаныққан болды):'),mx:`p₂ = ${fmt(p2)} ${L('кПа','кПа')}`}],ans:p2,unit:L('кПа','кПа'),tol:.02};}
+function pBoil(){const t=pick([70,75,80,85,90,95,105,110,115,120]);const p=PT.find(r=>r[0]===t)[1];const rows=PT.filter(r=>Math.abs(r[0]-t)<=10);
+  return{text:L(`При каком давлении вода закипит при температуре ${t} °C? Воспользуйтесь таблицей давления насыщенного пара:`,`Су ${t} °C температурада қандай қысымда қайнайды? Қаныққан бу қысымының кестесін пайдаланыңыз:`)+`<div class="tbl-wrap" style="margin-top:8px"><table><tr><th>t, °C</th>${rows.map(r=>`<td>${r[0]}</td>`).join('')}</tr><tr><th>p${L('н','қ')}, ${L('кПа','кПа')}</th>${rows.map(r=>`<td>${fmt(r[1])}</td>`).join('')}</tr></table></div>`,
+    given:`t = ${t} °C`,steps:[{why:L('Жидкость кипит, когда давление её насыщенного пара равно внешнему давлению:','Сұйық оның қаныққан буының қысымы сыртқы қысымға тең болғанда қайнайды:'),mx:`p${L('внеш','сырт')} = p${L('н','қ')}(${t} °C)`},{why:L('По таблице:','Кесте бойынша:'),mx:`p = ${fmt(p)} ${L('кПа','кПа')}${t<100?L(' — меньше нормального (как в горах)',' — қалыптыдан аз (таудағыдай)'):L(' — больше нормального (как в скороварке)',' — қалыптыдан көп (жылдам пісіргіштегідей)')}`}],ans:p,unit:L('кПа','кПа'),tol:.02};}
+const PGEN={heat:pHeat,heat2:pHeat2,cond:pCond,mass:pMass,comp:pComp,uns:pUns,boil:pBoil};
+const PR={cat:'heat',seed:1,shown:0,ans:false,tries:[],all:false};
+try{PR.all=localStorage.getItem('vap-solveall')==='1';}catch(e){}
+function drawProb(){
+  $('#prCat').innerHTML=Object.entries(PCAT()).map(([k,l])=>`<button data-c="${k}" aria-pressed="${k===PR.cat}">${l}</button>`).join('');
+  $('#prConst').innerHTML=[L('Вода: c = 4200 Дж/(кг·°C), L = 2,3·10⁶ Дж/кг','Су: c = 4200 Дж/(кг·°C), L = 2,3·10⁶ Дж/кг'),L('Спирт: L = 0,9·10⁶ Дж/кг; эфир: L = 0,4·10⁶ Дж/кг','Спирт: L = 0,9·10⁶ Дж/кг; эфир: L = 0,4·10⁶ Дж/кг'),L('M(H₂O) = 0,018 кг/моль; R = 8,31 Дж/(моль·К)','M(H₂O) = 0,018 кг/моль; R = 8,31 Дж/(моль·К)'),L('Нормальное атмосферное давление 101,3 кПа','Қалыпты атмосфералық қысым 101,3 кПа')].map(s=>`<div class="m" style="white-space:normal">${s}</div>`).join('');
+  const P=withSeed(PR.seed,()=>PGEN[PR.cat]());
+  $('#prCatL').textContent=PCAT()[PR.cat];
+  $('#prText').innerHTML=P.text+`<div style="margin-top:8px;color:var(--muted);font-size:.95rem">${L('Дано','Берілгені')}: <span class="m" style="white-space:normal">${P.given}</span></div>`;
+  $('#prAll').checked=PR.all;
+  const N=P.steps.length,n=PR.all?N:Math.min(PR.shown,N),ansOn=PR.all||PR.ans||n>=N;
+  const solved=PR.tries.some(v=>Math.abs(v-P.ans)<=Math.abs(P.ans)*P.tol);
+  $('#prWork').hidden=PR.all||ansOn;$('#prWork').innerHTML=L('Решите задачу в тетради или ручкой прямо здесь, введите ответ и нажмите «Проверить».','Есепті дәптерде немесе осы жерде қаламмен шығарып, жауапты енгізіп, «Тексеру» батырмасын басыңыз.');
+  const last=PR.tries[PR.tries.length-1];
+  $('#prCheck').innerHTML=PR.all?'':`<span class="lbl">${L('Ваш ответ','Сіздің жауабыңыз')}</span><div class="pin"><input class="num" id="prIn" inputmode="decimal" placeholder="?" value="${last!==undefined?String(last).replace('.',','):''}" ${solved?'disabled':''}><span class="m">${P.unit}</span><button class="btn" id="prGo" ${solved?'disabled':''}>${L('Проверить','Тексеру')}</button></div>`+
+    (last===undefined?'':solved?`<p class="fb ok">${L('Верно!','Дұрыс!')} ${PR.tries.length===1?L('С первой попытки.','Бірінші әрекеттен.'):''}</p>`:`<p class="fb bad">${L('Пока неверно. Проверьте вычисления и единицы измерения или откройте подсказку.','Әзірге қате. Есептеулер мен өлшем бірліктерін тексеріңіз немесе кеңесті ашыңыз.')} (${L('попыток','әрекет')}: ${PR.tries.length})</p>`);
+  $('#prSteps').innerHTML=P.steps.slice(0,n).map(s=>`<li><div><span class="why">${s.why}</span><span class="mx">${s.mx}</span></div></li>`).join('');
+  $('#prAns').innerHTML=ansOn?`<div class="answer">${L('Ответ','Жауабы')}: ${fmt(P.ans)} ${P.unit}</div>`:'';
+  $('#prCtl').innerHTML=PR.all?'':`<button class="btn ghost" data-c="next" ${n>=N?'disabled':''}>${L('Подсказка: следующий шаг','Кеңес: келесі қадам')} (${Math.min(n+1,N)}/${N})</button>`+(ansOn?'':`<button class="btn ghost" data-c="ans">${L('Показать ответ','Жауапты көрсету')}</button><button class="btn ghost" data-c="all">${L('Всё решение','Толық шешім')}</button>`);
+  const inp=$('#prIn');if(inp){const go=()=>{const v=Number(inp.value.replace(/\s/g,'').replace(',','.').replace('−','-'));if(inp.value.trim()===''||!isFinite(v))return;PR.tries.push(v);drawProb();};$('#prGo').addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});}
+}
+$('#prCat').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;PR.cat=b.dataset.c;newProb();});
+$('#prNew').addEventListener('click',()=>newProb());
+function newProb(){PR.seed=newSeed();PR.shown=0;PR.ans=false;PR.tries=[];drawProb();}
+$('#prCtl').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;const c=b.dataset.c;if(c==='next')PR.shown++;else if(c==='ans')PR.ans=true;else if(c==='all'){PR.shown=99;PR.ans=true;}drawProb();});
+$('#prAll').addEventListener('change',e=>{PR.all=e.target.checked;try{localStorage.setItem('vap-solveall',PR.all?'1':'0');}catch(_){}drawProb();});
+
+/* ================= БАНК ЗАДАНИЙ ================= */
+const CATN=()=>({th:L('Теория','Теория'),sat:L('Свойства насыщенного пара','Қаныққан бу қасиеттері'),heat:L('Количество теплоты','Жылу мөлшері'),boil:L('Кипение','Қайнау')});
+function mkQ(cat,q,correct,wrongs,ex){const seen=new Set([strip(String(correct))]);const w=[];for(const x of wrongs){const t=strip(String(x));if(!seen.has(t)){seen.add(t);w.push(x);}if(w.length===3)break;}
+  const opts=shuffle([correct,...w]);return{cat:CATN()[cat],q,opts,ans:opts.indexOf(correct),ex};}
+const THQ=()=>[
+  [L('Испарение происходит…','Булану…'),L('при любой температуре со свободной поверхности жидкости','кез келген температурада сұйықтың еркін бетінен жүреді'),[L('только при температуре кипения','тек қайнау температурасында жүреді'),L('по всему объёму жидкости','сұйықтың бүкіл көлемінде жүреді'),L('только при нагревании жидкости','тек сұйықты қыздырғанда жүреді')],L('Испарение идёт при любой температуре, но только с поверхности; по всему объёму идёт кипение.','Булану кез келген температурада, бірақ тек беттен жүреді; бүкіл көлемде қайнау жүреді.')],
+  [L('Почему жидкость при испарении охлаждается?','Неліктен буланғанда сұйық суиды?'),L('вылетают самые быстрые молекулы, средняя кинетическая энергия оставшихся уменьшается','ең шапшаң молекулалар ұшып шығады, қалғандарының орташа кинетикалық энергиясы кемиді'),[L('уменьшается масса жидкости','сұйықтың массасы азаяды'),L('вылетают самые медленные молекулы','ең баяу молекулалар ұшып шығады'),L('увеличивается потенциальная энергия сосуда','ыдыстың потенциалдық энергиясы артады')],L('Покинуть жидкость могут только быстрые молекулы, поэтому средняя энергия, а значит и температура оставшихся уменьшается.','Сұйықтан тек шапшаң молекулалар ұшып шыға алады, сондықтан қалғандарының орташа энергиясы, демек температурасы да кемиді.')],
+  [L('Насыщенный пар — это пар,…','Қаныққан бу дегеніміз —…'),L('находящийся в динамическом равновесии со своей жидкостью','өз сұйығымен динамикалық тепе-теңдікте тұрған бу'),[L('имеющий температуру 100 °C','температурасы 100 °C бу'),L('давление которого равно атмосферному','қысымы атмосфералық қысымға тең бу'),L('над которым нет жидкости','үстінде сұйық жоқ бу')],L('Определение: насыщенный пар находится в динамическом равновесии со своей жидкостью.','Анықтама: қаныққан бу өз сұйығымен динамикалық тепе-теңдікте болады.')],
+  [L('Что происходит при динамическом равновесии пара и жидкости?','Бу мен сұйықтың динамикалық тепе-теңдігінде не болады?'),L('за единицу времени вылетает столько же молекул, сколько возвращается','уақыт бірлігінде қанша молекула ұшып шықса, сонша қайтып оралады'),[L('испарение полностью прекращается','булану толық тоқтайды'),L('молекулы пара перестают двигаться','бу молекулалары қозғалмай қалады'),L('конденсация прекращается, идёт только испарение','конденсация тоқтап, тек булану жүреді')],L('Равновесие динамическое: оба процесса идут, но с одинаковой скоростью.','Тепе-теңдік динамикалық: екі процесс те жүреді, бірақ бірдей жылдамдықпен.')],
+  [L('Как давление насыщенного пара зависит от объёма при постоянной температуре?','Тұрақты температурада қаныққан бу қысымы көлемге қалай тәуелді?'),L('не зависит','тәуелді емес'),[L('обратно пропорционально объёму','көлемге кері пропорционал'),L('прямо пропорционально объёму','көлемге тура пропорционал'),L('пропорционально квадрату объёма','көлемнің квадратына пропорционал')],L('При сжатии часть пара конденсируется, концентрация пара и давление остаются прежними.','Сыққанда будың бір бөлігі конденсацияланады, бу концентрациясы мен қысым өзгермейді.')],
+  [L('Почему давление насыщенного пара растёт с температурой быстрее, чем давление идеального газа?','Неліктен қаныққан бу қысымы температура артқанда идеал газ қысымынан жылдамырақ өседі?'),L('растёт не только энергия молекул, но и их концентрация','молекулалардың энергиясы ғана емес, концентрациясы да артады'),[L('уменьшается объём сосуда','ыдыс көлемі азаяды'),L('молекулы пара становятся тяжелее','бу молекулалары ауырлайды'),L('насыщенный пар подчиняется закону Шарля','қаныққан бу Шарль заңына бағынады')],L('p = nkT: при нагревании жидкость испаряется, n растёт вместе с T.','p = nkT: қыздырғанда сұйық буланады, n мен T бірге артады.')],
+  [L('Жидкость кипит, когда…','Сұйық қашан қайнайды?'),L('давление её насыщенного пара равно внешнему давлению','оның қаныққан буының қысымы сыртқы қысымға тең болғанда'),[L('её температура равна 100 °C','оның температурасы 100 °C-қа тең болғанда'),L('давление насыщенного пара вдвое больше атмосферного','қаныққан бу қысымы атмосфералықтан екі есе көп болғанда'),L('исчезают пузырьки воздуха','ауа көпіршіктері жойылғанда')],L('Условие кипения: pн = pвнеш; 100 °C — только для воды при нормальном давлении.','Қайнау шарты: pқ = pсырт; 100 °C — тек қалыпты қысымдағы су үшін.')],
+  [L('Как меняется температура жидкости во время кипения (при постоянном давлении)?','Қайнау кезінде (тұрақты қысымда) сұйықтың температурасы қалай өзгереді?'),L('не меняется','өзгермейді'),[L('растёт','артады'),L('уменьшается','кемиді'),L('сначала растёт, затем уменьшается','алдымен артып, сосын кемиді')],L('Вся подводимая теплота идёт на парообразование, поэтому t кипения постоянна (участок BC на графике).','Берілген жылудың бәрі бу түзілуге жұмсалады, сондықтан қайнау t тұрақты (графиктегі BC бөлігі).')],
+  [L('Критическая температура — это температура,…','Кризистік температура дегеніміз —…'),L('выше которой газ нельзя превратить в жидкость никаким сжатием','одан жоғары температурада газды ешқандай сығумен сұйыққа айналдыру мүмкін емес температура'),[L('при которой жидкость кипит при нормальном давлении','қалыпты қысымда сұйық қайнайтын температура'),L('при которой вещество плавится','зат балқитын температура'),L('при которой прекращается испарение','булану тоқтайтын температура')],L('Для воды t кр = 374 °C. Ниже неё газ называют паром.','Су үшін t кр = 374 °C. Одан төмен газды бу деп атайды.')],
+  [L('Что происходит с энергией при конденсации пара?','Бу конденсацияланғанда энергия не болады?'),L('выделяется количество теплоты Q = Lm','Q = Lm жылу мөлшері бөлінеді'),[L('поглощается количество теплоты Q = Lm','Q = Lm жылу мөлшері жұтылады'),L('энергия не меняется','энергия өзгермейді'),L('выделяется теплота Q = cmΔt','Q = cmΔt жылу бөлінеді')],L('При конденсации выделяется столько же теплоты, сколько поглощается при парообразовании.','Конденсация кезінде бу түзілуде жұтылған жылудай жылу бөлінеді.')],
+  [L('Удельная теплота парообразования воды 2,3·10⁶ Дж/кг. Это значит, что…','Судың меншікті булану жылуы 2,3·10⁶ Дж/кг. Бұл нені білдіреді?'),L('для превращения 1 кг воды в пар при температуре кипения нужно 2,3·10⁶ Дж','қайнау температурасындағы 1 кг суды буға айналдыру үшін 2,3·10⁶ Дж қажет'),[L('для нагревания 1 кг воды на 1 °C нужно 2,3·10⁶ Дж','1 кг суды 1 °C-қа қыздыру үшін 2,3·10⁶ Дж қажет'),L('1 кг пара при 100 °C имеет энергию 2,3·10⁶ Дж','100 °C-тағы 1 кг будың энергиясы 2,3·10⁶ Дж'),L('для превращения 2,3 кг воды в пар нужно 1 МДж','2,3 кг суды буға айналдыру үшін 1 МДж қажет')],L('Определение удельной теплоты парообразования.','Меншікті булану жылуының анықтамасы.')],
+  [L('Как ненасыщенный пар сделать насыщенным?','Қанықпаған буды қалай қаныққан буға айналдыруға болады?'),L('изотермически сжать или охладить','изотермиялық сығу немесе салқындату'),[L('нагреть при постоянном объёме','тұрақты көлемде қыздыру'),L('изотермически увеличить объём','көлемді изотермиялық ұлғайту'),L('открыть сосуд','ыдысты ашу')],L('При сжатии растёт плотность пара, при охлаждении уменьшается pн — в обоих случаях пар достигает насыщения.','Сыққанда бу тығыздығы артады, салқындатқанда pқ кемиді — екі жағдайда да бу қанығады.')],
+  [L('От чего НЕ зависит скорость испарения жидкости?','Сұйықтың булану жылдамдығы неге тәуелді ЕМЕС?'),L('от массы сосуда','ыдыстың массасына'),[L('от температуры жидкости','сұйықтың температурасына'),L('от площади свободной поверхности','еркін беттің ауданына'),L('от рода жидкости','сұйықтың тегіне')],L('Скорость испарения зависит от температуры, площади поверхности, рода жидкости и наличия ветра.','Булану жылдамдығы температураға, бет ауданына, сұйықтың тегіне және желге тәуелді.')],
+  [L('В закрытой банке над водой со временем пар становится…','Жабық банкада су үстіндегі бу уақыт өте келе…'),L('насыщенным','қаныққан болады'),[L('ненасыщенным','қанықпаған болады'),L('сначала насыщенным, потом ненасыщенным','алдымен қаныққан, сосын қанықпаған болады'),L('идеальным газом без молекул воды','су молекулаларынсыз идеал газ болады')],L('В закрытом сосуде устанавливается динамическое равновесие — пар насыщается.','Жабық ыдыста динамикалық тепе-теңдік орнайды — бу қанығады.')],
+  [L('Почему в скороварке пища готовится быстрее?','Неліктен жылдам пісіргіште тағам тезірек піседі?'),L('давление выше, поэтому вода кипит при более высокой температуре','қысым жоғары, сондықтан су жоғарырақ температурада қайнайды'),[L('давление ниже, вода кипит быстрее','қысым төмен, су тезірек қайнайды'),L('вода в ней не испаряется','онда су буланбайды'),L('пар в ней ненасыщенный','ондағы бу қанықпаған')],L('Кипение наступает, когда pн = pвнеш. При p ≈ 200 кПа это ≈ 120 °C.','Қайнау pқ = pсырт болғанда басталады. p ≈ 200 кПа кезінде бұл ≈ 120 °C.')],
+];
+function gTh(){const B=THQ();const[q,a,w,ex]=pick(B);return mkQ('th',q,a,w,ex);}
+function gSat(){const r=rnd(),k=pick([2,3,4]);
+  if(r<.3)return mkQ('sat',L(`Насыщенный пар, находящийся над водой, изотермически сжали в ${k} раза. Как изменилось давление пара?`,`Су үстіндегі қаныққан буды изотермиялық түрде ${k} есе сықты. Бу қысымы қалай өзгерді?`),L('не изменилось','өзгермеді'),[L(`увеличилось в ${k} раза`,`${k} есе артты`),L(`уменьшилось в ${k} раза`,`${k} есе кеміді`),L(`увеличилось в ${k*k} раз`,`${k*k} есе артты`)],L('Давление насыщенного пара не зависит от объёма: часть пара конденсировалась.','Қаныққан бу қысымы көлемге тәуелді емес: будың бір бөлігі конденсацияланды.'));
+  if(r<.5)return mkQ('sat',L(`Ненасыщенный пар (далёкий от насыщения) изотермически сжали в ${k} раза, и он остался ненасыщенным. Как изменилось давление?`,`Қанығудан алыс қанықпаған буды изотермиялық түрде ${k} есе сықты, ол қанықпаған күйде қалды. Қысым қалай өзгерді?`),L(`увеличилось в ${k} раза`,`${k} есе артты`),[L('не изменилось','өзгермеді'),L(`уменьшилось в ${k} раза`,`${k} есе кеміді`),L(`увеличилось в ${k*k} раз`,`${k*k} есе артты`)],L('Ненасыщенный пар подчиняется закону Бойля — Мариотта: pV = const.','Қанықпаған бу Бойль — Мариотт заңына бағынады: pV = const.'));
+  if(r<.75){const[t1,t2]=pick([[20,40],[40,60],[60,80],[80,100],[20,60]]);const k1=psat(t2)/psat(t1),kc=(t2+273)/(t1+273);
+    return mkQ('sat',L(`Насыщенный пар над водой нагрели от ${t1} °C до ${t2} °C (пар остался насыщенным). Во сколько раз увеличилось его давление? (p<sub>н</sub>(${t1}) = ${fmt(psat(t1))} кПа, p<sub>н</sub>(${t2}) = ${fmt(psat(t2))} кПа)`,`Су үстіндегі қаныққан буды ${t1} °C-тан ${t2} °C-қа дейін қыздырды (бу қаныққан күйде қалды). Оның қысымы неше есе артты? (p<sub>қ</sub>(${t1}) = ${fmt(psat(t1))} кПа, p<sub>қ</sub>(${t2}) = ${fmt(psat(t2))} кПа)`),L(`≈ в ${fmt(k1,2)} раза`,`≈ ${fmt(k1,2)} есе`),[L(`≈ в ${fmt(kc,3)} раза (как по закону Шарля)`,`≈ ${fmt(kc,3)} есе (Шарль заңы бойынша)`),L(`в ${fmt(t2/t1,2)} раза`,`${fmt(t2/t1,2)} есе`),L('не изменилось','өзгермеді')],L(`Делим давления по таблице: ${fmt(psat(t2))} : ${fmt(psat(t1))} ≈ ${fmt(k1,2)}. Это намного больше, чем T₂/T₁ = ${fmt(kc,3)}, — растёт и концентрация пара.`,`Кестедегі қысымдарды бөлеміз: ${fmt(psat(t2))} : ${fmt(psat(t1))} ≈ ${fmt(k1,2)}. Бұл T₂/T₁ = ${fmt(kc,3)}-тен әлдеқайда көп — бу концентрациясы да артады.`));}
+  const t=pick([20,40,60,80]);const ps=psat(t),phi=pick([.5,.6,.8]),p1=ps*phi;const kk=pick([2,3]);const p2=Math.min(ps,p1*kk);
+  return mkQ('sat',L(`Пар при ${t} °C имеет давление ${fmt(p1)} кПа (p<sub>н</sub> = ${fmt(ps)} кПа). Объём изотермически уменьшили в ${kk} раза. Каким стало давление?`,`${t} °C-тағы будың қысымы ${fmt(p1)} кПа (p<sub>қ</sub> = ${fmt(ps)} кПа). Көлемді изотермиялық түрде ${kk} есе азайтты. Қысым қандай болды?`),`${fmt(p2)} ${L('кПа','кПа')}`,[`${fmt(p1*kk)} ${L('кПа','кПа')}`,`${fmt(p1)} ${L('кПа','кПа')}`,`${fmt(p1/kk)} ${L('кПа','кПа')}`,`${fmt(ps*kk)} ${L('кПа','кПа')}`],p1*kk>ps?L(`По закону Бойля — Мариотта вышло бы ${fmt(p1*kk)} кПа > pн, поэтому пар стал насыщенным, и p = pн = ${fmt(ps)} кПа.`,`Бойль — Мариотт заңы бойынша ${fmt(p1*kk)} кПа > pқ шығар еді, сондықтан бу қаныққан болды, p = pқ = ${fmt(ps)} кПа.`):L(`p₂ = ${kk}p₁ = ${fmt(p2)} кПа ≤ pн — пар не перешёл границу насыщения.`,`p₂ = ${kk}p₁ = ${fmt(p2)} кПа ≤ pқ — бу қанығу шегінен аспады.`));}
+function gHeat(){const r=rnd();
+  if(r<.5){const s=pick(SUBST().slice(0,3)),m=pick([0.2,0.5,1,2,3]);const Q=s.L*m;
+    return mkQ('heat',L(`Сколько энергии нужно, чтобы превратить в пар ${fmt(m)} кг жидкости (${s.n}) при температуре кипения? L = ${fmt(s.L)} Дж/кг.`,`Қайнау температурасындағы ${fmt(m)} кг сұйықты (${s.n}) буға айналдыру үшін қанша энергия қажет? L = ${fmt(s.L)} Дж/кг.`),`${fmt(Q)} ${L('Дж','Дж')}`,[`${fmt(s.L/m)} ${L('Дж','Дж')}`,`${fmt(Q/1000)} ${L('Дж','Дж')}`,`${fmt(Q*10)} ${L('Дж','Дж')}`,`${fmt(CW*m*100)} ${L('Дж','Дж')}`],`Q = Lm = ${fmt(s.L)} · ${fmt(m)} = ${fmt(Q)} ${L('Дж','Дж')}.`);}
+  const m=pick([0.1,0.2,0.5,1]);const Q=LW*m;
+  return mkQ('heat',L(`Какое количество теплоты выделится при конденсации ${fmt(m)} кг водяного пара при 100 °C?`,`100 °C-тағы ${fmt(m)} кг су буы конденсацияланғанда қандай жылу мөлшері бөлінеді?`),`${fmt(Q)} ${L('Дж','Дж')}`,[`${fmt(CW*m*100)} ${L('Дж','Дж')}`,`${fmt(LW/m)} ${L('Дж','Дж')}`,`${fmt(Q+CW*m*100)} ${L('Дж','Дж')}`,`0 ${L('Дж','Дж')}`],L(`При конденсации выделяется Q = Lm = 2,3·10⁶ · ${fmt(m)} = ${fmt(Q)} Дж (температура не меняется, остывания нет).`,`Конденсация кезінде Q = Lm = 2,3·10⁶ · ${fmt(m)} = ${fmt(Q)} Дж бөлінеді (температура өзгермейді, суу жоқ).`));}
+function gBoil(){const r=rnd();
+  if(r<.5){const t=pick([70,80,90,110,120]);const p=PT.find(x=>x[0]===t)[1];
+    return mkQ('boil',L(`Внешнее давление ${fmt(p)} кПа. При какой температуре закипит вода?`,`Сыртқы қысым ${fmt(p)} кПа. Су қандай температурада қайнайды?`),`${t} °C`,['100 °C',...[60,70,80,90,110,120,130].filter(x=>x!==t).sort((a,b)=>Math.abs(a-t)-Math.abs(b-t)).slice(0,3).map(x=>x+' °C')],L(`Вода кипит, когда pн(t) = pвнеш. По таблице pн(${t} °C) = ${fmt(p)} кПа.`,`Су pқ(t) = pсырт болғанда қайнайды. Кесте бойынша pқ(${t} °C) = ${fmt(p)} кПа.`));}
+  const pl=pick(PLACES().slice(3,8));const p=pAlt(pl.h),tb=tboil(p);
+  return mkQ('boil',L(`Где вода закипает при температуре около ${Math.round(tb)} °C?`,`Су шамамен ${Math.round(tb)} °C температурада қай жерде қайнайды?`),pl.n,PLACES().filter(x=>x!==pl&&!x.p&&Math.abs(tboil(pAlt(x.h))-tb)>2).map(x=>x.n).concat([PLACES()[8].n]).slice(-3),L(`С высотой давление уменьшается; на высоте ${pl.h} м p ≈ ${fmt(p)} кПа, и pн = p достигается при ≈ ${Math.round(tb)} °C.`,`Биіктік артқан сайын қысым кемиді; ${pl.h} м биіктікте p ≈ ${fmt(p)} кПа, ал pқ = p шарты ≈ ${Math.round(tb)} °C-та орындалады.`));}
+const GEN={th:gTh,sat:gSat,heat:gHeat,boil:gBoil};
+const build=rec=>withSeed(rec.seed,()=>GEN[rec.cat==='all'?pick(Object.keys(GEN)):rec.cat]());
+const LET='АБВГ';
+function renderQ(box,q,chosen,{onAnswer,nextLabel,onNext}){
+  box.innerHTML=`<div class="qcard"><div class="qcat">${q.cat}</div><div class="qtext">${q.q}</div><div class="opts">${q.opts.map((o,i)=>`<button class="opt" data-o="${i}"><span class="k">${LET[i]}</span><span>${o}</span></button>`).join('')}</div><div class="fb"></div></div>`;
+  const btns=[...box.querySelectorAll('.opt')];
+  const showFb=(i,focus)=>{const ok=i===q.ans;btns.forEach(x=>{x.disabled=true;});btns[q.ans].classList.add('right');if(!ok)btns[i].classList.add('wrong');
+    const fb=box.querySelector('.fb');fb.innerHTML=`<div class="expl ${ok?'ok':'no'}"><b>${ok?L('Верно!','Дұрыс!'):L('Неверно. Правильный ответ: ','Қате. Дұрыс жауап: ')+LET[q.ans]}</b>${q.ex}</div>`;
+    const nb=document.createElement('button');nb.className='btn';nb.textContent=nextLabel();nb.style.marginTop='14px';nb.addEventListener('click',onNext);fb.appendChild(nb);if(focus)nb.focus({preventScroll:true});};
+  if(chosen!=null)showFb(chosen,false);
+  btns.forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.o;showFb(i,true);onAnswer(i===q.ans,i);}));
+}
+const T={cat:'all',done:0,ok:0,streak:0,best:0,rec:null,chosen:null};
+try{T.best=+localStorage.getItem('vap-best')||0;}catch(e){}
+function renderTrCat(){const C_=[['all',L('Все темы','Барлық тақырыптар')],...Object.entries(CATN())];$('#trCat').innerHTML=C_.map(([k,l])=>`<button data-c="${k}" aria-pressed="${k===T.cat}">${l}</button>`).join('');}
+$('#trCat').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;T.cat=b.dataset.c;[...$('#trCat').children].forEach(x=>x.setAttribute('aria-pressed',x===b));nextTrain();});
+function stats(){$('#sDone').textContent=T.done;$('#sOk').textContent=T.ok;$('#sStreak').textContent=T.streak;$('#sBest').textContent=T.best;}
+function drawTrain(){renderQ($('#trBox'),build(T.rec),T.chosen,{nextLabel:()=>L('Следующее задание','Келесі тапсырма'),onNext:nextTrain,onAnswer:(ok,i)=>{T.chosen=i;T.done++;if(ok){T.ok++;T.streak++;if(T.streak>T.best){T.best=T.streak;try{localStorage.setItem('vap-best',T.best);}catch(e){}}}else T.streak=0;stats();}});}
+function nextTrain(){T.rec={cat:T.cat,seed:newSeed()};T.chosen=null;drawTrain();}
+const TT={phase:'intro',recs:[],i:0,ok:0,chosen:[]};
+function drawTest(){if(TT.phase==='intro')testIntro();else if(TT.phase==='q')testStep();else testEnd();}
+function testIntro(){let best=null;try{best=localStorage.getItem('vap-test');}catch(e){}
+  $('#testBox').innerHTML=`<div class="qcard"><h2>${L('Итоговый тест','Қорытынды тест')}</h2><p>${L('10 заданий: теория, свойства насыщенного пара, количество теплоты при парообразовании и конденсации, кипение. После каждого ответа — разбор, в конце — итог и список ошибок.','10 тапсырма: теория, қаныққан будың қасиеттері, бу түзілу мен конденсациядағы жылу мөлшері, қайнау. Әр жауаптан кейін талдау, соңында қорытынды және қателер тізімі.')}</p>
+    ${best!==null?`<p class="stat">${L('Ваш лучший результат','Ең жақсы нәтижеңіз')}: <b>${best} / 10</b></p>`:''}<button class="btn" id="tStart">${L('Начать тест','Тестті бастау')}</button></div>`;
+  $('#tStart').addEventListener('click',startTest);}
+function startTest(){TT.recs=shuffle(['th','th','th','sat','sat','sat','heat','heat','boil','boil']).map(c=>({cat:c,seed:newSeed()}));TT.i=0;TT.ok=0;TT.chosen=[];TT.phase='q';testStep();}
+function testStep(){const q=build(TT.recs[TT.i]),box=$('#testBox'),ch=TT.chosen[TT.i];
+  box.innerHTML=`<div class="row" style="margin-bottom:10px"><span class="stat">${L('Задание','Тапсырма')} <b>${TT.i+1}</b> / 10</span><span class="stat">${L('Верно','Дұрыс')}: <b id="tOk">${TT.ok}</b></span></div><div class="progress" style="margin-bottom:16px"><i style="width:${(TT.i+(ch!=null?1:0))*10}%"></i></div><div id="tQ"></div>`;
+  renderQ($('#tQ'),q,ch,{nextLabel:()=>TT.i<9?L('Дальше','Әрі қарай'):L('Показать результат','Нәтижені көрсету'),onNext:()=>{TT.i++;if(TT.i<10)testStep();else{TT.phase='end';testEnd();}},
+    onAnswer:(ok,i)=>{TT.chosen[TT.i]=i;if(ok)TT.ok++;box.querySelector('.progress i').style.width=(TT.i+1)*10+'%';$('#tOk').textContent=TT.ok;}});}
+function testEnd(){const s=TT.ok;const msg=s>=9?L('Отлично! Тема усвоена.','Өте жақсы! Тақырып меңгерілді.'):s>=7?L('Хорошо. Повторите задания, где были ошибки.','Жақсы. Қате жіберген тапсырмаларды қайталаңыз.'):s>=5?L('Неплохо, но стоит потренироваться ещё.','Жаман емес, бірақ тағы жаттығу керек.'):L('Вернитесь к теории и модели, затем потренируйтесь ещё.','Теория мен модельге қайта оралып, сосын тағы жаттығыңыз.');
+  try{const prev=localStorage.getItem('vap-test');if(prev===null||s>+prev)localStorage.setItem('vap-test',s);}catch(e){}
+  const wrong=TT.recs.map((r,i)=>({q:build(r),c:TT.chosen[i]})).filter(x=>x.c!==x.q.ans);
+  $('#testBox').innerHTML=`<div class="qcard"><div class="qcat">${L('Результат','Нәтиже')}</div><div class="score">${s} <span style="font-size:1.4rem;color:var(--muted)">/ 10</span></div><p>${msg}</p>
+    ${wrong.length?`<h3>${L('Разбор ошибок','Қателерді талдау')}</h3><div class="review">${wrong.map(({q})=>`<div><span class="qcat">${q.cat}</span><span>${q.q}</span><span>${L('Ответ','Жауабы')}: ${q.opts[q.ans]}</span><span style="color:var(--muted)">${q.ex}</span></div>`).join('')}</div>`:''}
+    <div class="row"><button class="btn" id="tAgain">${L('Пройти ещё раз','Қайта тапсыру')}</button><button class="btn ghost" id="tTrain">${L('Перейти в тренажёр','Жаттықтырғышқа өту')}</button></div></div>`;
+  $('#tAgain').addEventListener('click',startTest);$('#tTrain').addEventListener('click',()=>showTab('train'));}
+
+/* ================= переключатели ================= */
+function renderAll(){applyUI();renderTheory();syncModelCtrls();lastPV='';drawSimUI();drawVessel();drawBoil();drawProb();renderTrCat();stats();drawTrain();drawTest();}
+$('#langSw').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.dataset.lang===LANG)return;LANG=b.dataset.lang;try{localStorage.setItem('vap-lang',LANG);}catch(e){}renderAll();});
+function setSize(px){document.documentElement.style.fontSize=px+'px';[...$('#sizeSw').children].forEach(b=>b.setAttribute('aria-pressed',+b.dataset.sz===px));}
+$('#sizeSw').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const px=+b.dataset.sz;setSize(px);try{localStorage.setItem('vap-size',px);}catch(e){}});
+(function(){let px=22;try{const v=+localStorage.getItem('vap-size');if([16,22,28].includes(v))px=v;}catch(e){}setSize(px);})();
+const mq=matchMedia('(prefers-color-scheme: dark)');
+function syncTheme(){const t=document.documentElement.dataset.theme||(mq.matches?'dark':'light');[...$('#themeSw').children].forEach(b=>b.setAttribute('aria-pressed',b.dataset.th===t));drawVessel();}
+$('#themeSw').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;document.documentElement.dataset.theme=b.dataset.th;try{localStorage.setItem('vap-theme',b.dataset.th);}catch(e){}syncTheme();});
+try{const t=localStorage.getItem('vap-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}
+mq.addEventListener('change',syncTheme);new MutationObserver(syncTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+simEq();PR.seed=newSeed();T.rec={cat:'all',seed:newSeed()};
+renderAll();syncTheme();
+(function(){const h=location.hash.slice(1);let t=TABS.includes(h)?h:null;if(!t){try{const s=localStorage.getItem('vap-tab');if(TABS.includes(s))t=s;}catch(e){}}showTab(t||'theory');})();
+</script>
+
+<style>
+#penCv{position:fixed;inset:0;width:100vw;height:100vh;z-index:900;pointer-events:none;touch-action:auto}
+#penCv.on{pointer-events:auto;touch-action:none;cursor:crosshair}
+#penCv.on.er{cursor:cell}
+#penBar{position:fixed;right:18px;bottom:18px;z-index:901;display:flex;align-items:center;gap:6px;padding:8px;border-radius:40px;background:var(--surface);border:1px solid var(--line);box-shadow:0 6px 24px rgba(10,20,50,.18);font-family:'PT Sans',Arial,sans-serif}
+#penBar button{all:unset;box-sizing:border-box;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:var(--ink);transition:background .15s}
+#penBar button:hover{background:var(--accent-soft)}
+#penBar button[aria-pressed="true"]{background:var(--accent-soft);box-shadow:inset 0 0 0 3px var(--accent)}
+#penBar button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#penBar svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#penBar .sw{width:30px;height:30px;border-radius:50%;border:2px solid rgba(0,0,0,.15)}
+#penBar .wd{background:var(--ink);border-radius:50%}
+#penBar .sep{width:1px;height:36px;background:var(--line);margin:0 4px}
+#penBar .tools{display:none;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+#penBar.open .tools{display:flex}
+#penMain{background:var(--accent)!important;color:#fff!important;width:62px!important;height:62px!important}
+#penBar.open #penMain{background:var(--c2,#c2410c)!important}
+@media (max-width:900px){#penBar{max-width:calc(100vw - 36px);border-radius:24px}#penBar button{width:46px;height:46px}}
+</style>
+<canvas id="penCv"></canvas>
+<div id="penBar">
+  <div class="tools">
+    <button data-pc="ink" class="pc"><span class="sw"></span></button>
+    <button data-pc="red" class="pc"><span class="sw"></span></button>
+    <button data-pc="blue" class="pc"><span class="sw"></span></button>
+    <button data-pc="green" class="pc"><span class="sw"></span></button>
+    <button data-pc="orange" class="pc"><span class="sw"></span></button>
+    <button data-pc="violet" class="pc"><span class="sw"></span></button>
+    <span class="sep"></span>
+    <button data-pw="3" class="pw"><span class="wd" style="width:6px;height:6px"></span></button>
+    <button data-pw="6" class="pw"><span class="wd" style="width:11px;height:11px"></span></button>
+    <button data-pw="12" class="pw"><span class="wd" style="width:18px;height:18px"></span></button>
+    <span class="sep"></span>
+    <button id="penEr"><svg viewBox="0 0 24 24"><path d="M7 21h12"/><path d="M5.5 15.5 14 7l5 5-8.5 8.5H7.5z"/><path d="M9.5 11.5l5 5"/></svg></button>
+    <button id="penUndo"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+    <button id="penClr"><svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg></button>
+    <span class="sep"></span>
+  </div>
+  <button id="penMain" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M15 4l5 5L9 20H4v-5z"/><path d="M13 6l5 5"/></svg></button>
+</div>
+<script>
+(function(){
+  const cv=document.getElementById('penCv'),bar=document.getElementById('penBar'),ctx=cv.getContext('2d');
+  const LNG=()=>(typeof LANG!=='undefined'&&LANG==='kz')?1:0;
+  const TIP={penMain:['Ручка: рисовать на экране (Esc — выключить)','Қалам: экранға жазу (Esc — өшіру)'],penEr:['Ластик','Өшіргіш'],penUndo:['Отменить последнее','Соңғысын болдырмау'],penClr:['Стереть всё на этой вкладке','Осы беттегінің бәрін өшіру'],
+    ink:['Чёрный','Қара'],red:['Красный','Қызыл'],blue:['Синий','Көк'],green:['Зелёный','Жасыл'],orange:['Оранжевый','Қызғылт сары'],violet:['Фиолетовый','Күлгін'],w3:['Тонкая линия','Жіңішке сызық'],w6:['Средняя линия','Орташа сызық'],w12:['Толстая линия','Жуан сызық']};
+  const COL={ink:['#1c2746','#f1f4fb'],red:['#dc2626','#ff6b6b'],blue:['#2563eb','#7aa2ff'],green:['#15803d','#4ade80'],orange:['#ea580c','#fb923c'],violet:['#7c3aed','#c4a5ff']};
+  const mqD=matchMedia('(prefers-color-scheme: dark)');
+  const dark=()=>{const t=document.documentElement.dataset.theme;return t?t==='dark':mqD.matches;};
+  const st={on:false,color:'red',w:6,er:false,pages:{},cleared:{},cur:null};
+  const key=()=>{const t=document.querySelector('[role="tab"][aria-selected="true"]');return t?(t.id||t.dataset.tab||t.textContent):'main';};
+  const list=()=>st.pages[key()]||(st.pages[key()]=[]);
+  let dpr=1;
+  function size(){dpr=Math.min(window.devicePixelRatio||1,2);cv.width=Math.round(innerWidth*dpr);cv.height=Math.round(innerHeight*dpr);redraw();}
+  function stroke(s){if(s.p.length===0)return;ctx.save();ctx.globalCompositeOperation=s.er?'destination-out':'source-over';
+    ctx.strokeStyle=s.er?'#000':COL[s.c][dark()?1:0];ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=s.w;ctx.lineCap='round';ctx.lineJoin='round';
+    const ox=scrollX,oy=scrollY,p=s.p;
+    if(p.length===1){ctx.beginPath();ctx.arc(p[0][0]-ox,p[0][1]-oy,s.w/2,0,7);ctx.fill();}
+    else{ctx.beginPath();ctx.moveTo(p[0][0]-ox,p[0][1]-oy);for(let i=1;i<p.length-1;i++){const mx=(p[i][0]+p[i+1][0])/2,my=(p[i][1]+p[i+1][1])/2;ctx.quadraticCurveTo(p[i][0]-ox,p[i][1]-oy,mx-ox,my-oy);}
+      const l=p[p.length-1];ctx.lineTo(l[0]-ox,l[1]-oy);ctx.stroke();}
+    ctx.restore();}
+  function redraw(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,innerWidth,innerHeight);list().forEach(stroke);if(st.cur)stroke(st.cur);}
+  function tips(){const l=LNG();bar.querySelectorAll('button').forEach(b=>{const k=b.id||(b.dataset.pc)||('w'+b.dataset.pw);const t=TIP[k];if(t){b.title=t[l];b.setAttribute('aria-label',t[l]);}});}
+  function ui(){bar.classList.toggle('open',st.on);cv.classList.toggle('on',st.on);cv.classList.toggle('er',st.er);
+    document.getElementById('penMain').setAttribute('aria-pressed',st.on);
+    bar.querySelectorAll('.pc').forEach(b=>{b.setAttribute('aria-pressed',!st.er&&b.dataset.pc===st.color);b.firstElementChild.style.background=COL[b.dataset.pc][dark()?1:0];});
+    bar.querySelectorAll('.pw').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.pw===st.w));
+    document.getElementById('penEr').setAttribute('aria-pressed',st.er);tips();}
+  bar.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+    if(b.id==='penMain'){st.on=!st.on;}
+    else if(b.dataset.pc){st.color=b.dataset.pc;st.er=false;}
+    else if(b.dataset.pw){st.w=+b.dataset.pw;}
+    else if(b.id==='penEr'){st.er=!st.er;}
+    else if(b.id==='penUndo'){const L_=list();if(L_.length)L_.pop();else if(st.cleared[key()]){st.pages[key()]=st.cleared[key()];delete st.cleared[key()];}redraw();}
+    else if(b.id==='penClr'){if(list().length){st.cleared[key()]=list();st.pages[key()]=[];}redraw();}
+    ui();});
+  function pt(e){return[e.clientX+scrollX,e.clientY+scrollY];}
+  cv.addEventListener('pointerdown',e=>{if(!st.on)return;e.preventDefault();try{cv.setPointerCapture(e.pointerId);}catch(_){}
+    const er=st.er||e.button===5||(e.buttons&32);
+    st.cur={c:st.color,w:er?Math.max(30,st.w*4):st.w,er,p:[pt(e)]};delete st.cleared[key()];redraw();});
+  cv.addEventListener('pointermove',e=>{if(!st.cur)return;const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];(evs.length?evs:[e]).forEach(ev=>st.cur.p.push(pt(ev)));redraw();});
+  const end=()=>{if(!st.cur)return;list().push(st.cur);st.cur=null;redraw();};
+  cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);cv.addEventListener('lostpointercapture',end);
+  addEventListener('scroll',redraw,{passive:true});addEventListener('resize',size);
+  addEventListener('keydown',e=>{if(e.key==='Escape'&&st.on){st.on=false;ui();}});
+  new MutationObserver(()=>{redraw();ui();}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','lang']});
+  mqD.addEventListener('change',()=>{redraw();ui();});
+  document.querySelectorAll('[role="tab"]').forEach(t=>new MutationObserver(redraw).observe(t,{attributes:true,attributeFilter:['aria-selected']}));
+  document.addEventListener('click',e=>{if(e.target.closest('#langSw,[data-lang]'))setTimeout(tips,0);});
+  size();ui();
+})();
+</script>
